@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2A English 課堂與自學平台</title>
+  <title>老師課堂管理系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif; }
@@ -34,22 +34,22 @@
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm"></div>
 
-  <!-- Login Screen -->
-  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 relative">
+  <!-- Login Screen (Teacher Only) -->
+  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-800 via-indigo-900 to-slate-900 relative">
     <button onclick="app.toggleLang()"
       class="lang-toggle-btn absolute top-4 right-4 px-3.5 py-2 bg-white/90 hover:bg-white text-indigo-700 rounded-xl text-xs font-bold shadow transition">
       🌐 EN
     </button>
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-pop">
       <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-100 text-3xl mb-3">🏫</div>
-        <h1 class="text-2xl font-bold text-slate-800" data-i18n="loginTitle">中二英文 課堂自學平台</h1>
-        <p class="text-sm text-slate-500 mt-1" data-i18n="loginSubtitle">請登入老師或學生戶口</p>
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-100 text-3xl mb-3">👩‍🏫</div>
+        <h1 class="text-2xl font-bold text-slate-800" data-i18n="loginTitle">老師課堂管理系統</h1>
+        <p class="text-sm text-slate-500 mt-1" data-i18n="loginSubtitle">僅限授權老師帳號登入</p>
       </div>
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="emailLabel">電郵 / 學生編號</label>
-          <input id="login-email" type="text" required data-i18n-placeholder="emailPlaceholder" placeholder="老師輸入電郵 / 學生輸入班號 (如 2a01)"
+          <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="emailLabel">老師電郵</label>
+          <input id="login-email" type="email" required data-i18n-placeholder="emailPlaceholder" placeholder="請輸入授權老師電郵"
             class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
         </div>
         <div>
@@ -72,9 +72,9 @@
     <header class="bg-white shadow-sm sticky top-0 z-30">
       <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-          <span class="text-2xl">📘</span>
+          <span class="text-2xl">👩‍🏫</span>
           <div>
-            <div class="font-bold text-slate-800 leading-tight">2A English</div>
+            <div class="font-bold text-slate-800 leading-tight" data-i18n="appTitle">老師課堂工具</div>
             <div id="user-badge" class="text-xs text-slate-500"></div>
           </div>
         </div>
@@ -82,16 +82,12 @@
         <!-- Tabs -->
         <nav class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
           <button id="tab-btn-wheel" onclick="app.switchTab('wheel')"
-            class="teacher-only hidden px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabWheel">
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabWheel">
             🎡 抽籤轉盤
           </button>
           <button id="tab-btn-seating" onclick="app.switchTab('seating')"
-            class="teacher-only hidden px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabSeating">
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabSeating">
             🪑 座位表紀錄
-          </button>
-          <button id="tab-btn-materials" onclick="app.switchTab('materials')"
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabMaterials">
-            📚 網上自學區
           </button>
         </nav>
 
@@ -102,7 +98,7 @@
             🌐 EN
           </button>
           <button id="projector-lock-btn" onclick="app.toggleProjectorLock()"
-            class="teacher-only hidden px-3 py-1.5 rounded-lg text-xs font-semibold border transition">
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition">
             🔓 投影安全鎖：關
           </button>
           <button onclick="app.logout()"
@@ -184,7 +180,7 @@
         </div>
       </section>
 
-      <!-- ==================== PAGE 2: SEATING CHART (TEACHER ONLY) ==================== -->
+      <!-- ==================== PAGE 2: SEATING CHART ==================== -->
       <section id="page-seating" class="hidden space-y-4">
         <!-- Toolbar -->
         <div class="bg-white rounded-2xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
@@ -252,22 +248,6 @@
           <div id="unassigned-list" class="flex flex-wrap gap-2"></div>
         </div>
       </section>
-
-      <!-- ==================== PAGE 3: ONLINE LEARNING MATERIALS ==================== -->
-      <section id="page-materials" class="hidden space-y-5">
-        <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 class="text-xl font-bold text-slate-800" data-i18n="materialsTitle">📚 網上自學區</h2>
-            <p class="text-sm text-slate-500" data-i18n="materialsSubtitle">教學影片、PDF 筆記及互動練習（Kahoot 遊戲系統將於下階段加入）</p>
-          </div>
-          <button onclick="app.openAddMaterialModal()"
-            class="teacher-only hidden px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow" data-i18n="addMaterialBtn">
-            ➕ 新增教材（影片 / PDF / 連結）
-          </button>
-        </div>
-
-        <div id="materials-list" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
-      </section>
     </main>
   </div>
 
@@ -287,7 +267,7 @@
       </div>
 
       <div class="p-5 space-y-4 overflow-y-auto">
-        <!-- Good & Bad Performance (NO MINUS BUTTON) -->
+        <!-- Good & Bad Performance -->
         <div class="grid grid-cols-2 gap-3 text-center">
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col items-center">
             <div class="text-xs font-bold text-emerald-700" data-i18n="goodLabel">👍 好表現</div>
@@ -314,7 +294,7 @@
             class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
         </div>
 
-        <!-- Dedicated Missing Homework Box (NO MINUS BUTTON) -->
+        <!-- Dedicated Missing Homework Box -->
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold text-amber-800" data-i18n="hwLabel">📝 欠交功課</span>
@@ -441,52 +421,13 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: ADD MATERIAL ==================== -->
-  <div id="material-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-pop">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold" data-i18n="addMatModalTitle">➕ 新增網上教材</h3>
-        <button onclick="app.closeModal('material-modal')" class="text-slate-400 hover:text-slate-700 text-2xl">&times;</button>
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matTitleLabel">教材標題</label>
-        <input id="mat-title" type="text" data-i18n-placeholder="matTitlePlaceholder" placeholder="例如：Unit 3 Passive Voice 教學影片"
-          class="w-full px-3 py-2 border rounded-xl text-sm" />
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matTypeLabel">類型</label>
-        <select id="mat-type" class="w-full px-3 py-2 border rounded-xl text-sm bg-white">
-          <option value="youtube" data-i18n="typeYoutube">🎬 YouTube 影片</option>
-          <option value="pdf" data-i18n="typePdf">📄 Google Drive PDF 筆記</option>
-          <option value="link" data-i18n="typeLink">🔗 外部網頁連結</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matUrlLabel">網址連結（直接貼上普通分享連結即可）</label>
-        <input id="mat-url" type="url" placeholder="https://..."
-          class="w-full px-3 py-2 border rounded-xl text-sm" />
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matDescLabel">簡短說明（選填）</label>
-        <textarea id="mat-desc" rows="2" data-i18n-placeholder="matDescPlaceholder" placeholder="請同學觀看後完成工作紙第 2 頁"
-          class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button onclick="app.closeModal('material-modal')" class="px-4 py-2 bg-slate-100 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">取消</button>
-        <button onclick="app.saveMaterial()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold" data-i18n="publishBtn">
-          發佈教材
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ==================== FIREBASE & APP LOGIC ==================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import {
-      getFirestore, collection, doc, setDoc, addDoc, updateDoc, deleteDoc,
-      onSnapshot, writeBatch, query, orderBy
+      getFirestore, collection, doc, setDoc, updateDoc, deleteDoc,
+      onSnapshot, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -510,23 +451,23 @@
     // ==================== BILINGUAL DICTIONARY ====================
     const I18N = {
       zh: {
-        docTitle: "2A English 課堂與自學平台",
+        docTitle: "老師課堂管理系統",
+        appTitle: "老師課堂工具",
         loading: "正在連線至課室系統...",
         langSwitch: "🌐 EN",
-        loginTitle: "中二英文 課堂自學平台",
-        loginSubtitle: "請登入老師或學生戶口",
-        emailLabel: "電郵 / 學生編號",
-        emailPlaceholder: "老師輸入電郵 / 學生輸入班號 (如 2a01)",
+        loginTitle: "老師課堂管理系統",
+        loginSubtitle: "僅限授權老師帳號登入",
+        emailLabel: "老師電郵",
+        emailPlaceholder: "請輸入授權老師電郵",
         passwordLabel: "密碼",
         passwordPlaceholder: "請輸入密碼",
         loginBtn: "登入系統",
         loggingIn: "登入中...",
         loginErr: "帳號或密碼錯誤，請再試一次。",
-        teacherBadge: "👩‍🏫 老師權限",
-        studentBadge: "🎓 學生戶口",
+        notTeacherErr: "此系統僅供老師使用，此帳號沒有存取權限。",
+        teacherBadge: "老師帳號",
         tabWheel: "🎡 抽籤轉盤",
         tabSeating: "🪑 座位表紀錄",
-        tabMaterials: "📚 網上自學區",
         lockOn: "🔒 投影安全鎖：開",
         lockOff: "🔓 投影安全鎖：關",
         lockBlockedToast: "🔒 投影安全鎖已開啟！請先按右上角解鎖再打開座位表。",
@@ -570,16 +511,7 @@
         seatSelectedToast: "已選取學生，請點擊目標座位完成移動／互換",
         seatUpdatedToast: "✅ 座位已更新",
         gridUpdatedToast: "已更新座位表格數",
-        materialsTitle: "📚 網上自學區",
-        materialsSubtitle: "教學影片、PDF 筆記及互動練習（Kahoot 遊戲系統將於下階段加入）",
-        addMaterialBtn: "➕ 新增教材（影片 / PDF / 連結）",
-        noMatTeacher: "仲未有教材，點擊右上角「新增教材」加入 YouTube 影片或 Google Drive PDF！",
-        noMatStudent: "老師暫時未發佈自學教材。",
-        openLinkBtn: "🔗 開啟外部網頁",
         deleteBtn: "刪除",
-        doneBtn: "✅ 已完成打卡",
-        markDoneBtn: "☑️ 標記為已完成",
-        progressSavedToast: "🎉 已記錄你的自學進度！",
         goodLabel: "👍 好表現",
         badLabel: "👎 壞表現",
         hwLabel: "📝 欠交功課",
@@ -610,43 +542,28 @@
         batchModalDesc: "每行輸入一位同學，格式為「班別, 班號, 姓名」（用逗號分隔）。系統會自動將同學依次排入空座位。",
         importBtn: "開始匯入",
         importSuccessToast: "✅ 成功匯入學生名單！",
-        addMatModalTitle: "➕ 新增網上教材",
-        matTitleLabel: "教材標題",
-        matTitlePlaceholder: "例如：Unit 3 Passive Voice 教學影片",
-        matTypeLabel: "類型",
-        typeYoutube: "🎬 YouTube 影片",
-        typePdf: "📄 Google Drive PDF 筆記",
-        typeLink: "🔗 外部網頁連結",
-        matUrlLabel: "網址連結（直接貼上普通分享連結即可）",
-        matDescLabel: "簡短說明（選填）",
-        matDescPlaceholder: "請同學觀看後完成工作紙第 2 頁",
-        publishBtn: "發佈教材",
-        matMissingToast: "請填寫標題同網址",
-        matPublishedToast: "✅ 已發佈新教材！",
-        confirmDeleteMat: "確定刪除呢份教材？",
-        matDeletedToast: "已刪除教材",
         noCsvToast: "暫無學生資料可匯出",
         csvHeaders: ["班別", "班號", "姓名", "好表現", "壞表現", "欠交功課次數", "欠交功課內容清單", "最新備註"],
         permDeniedToast: "⚠️ 資料庫權限不足！請檢查 Firebase 安全規則是否已填入正確老師電郵並發佈。"
       },
       en: {
-        docTitle: "2A English Class & Self-Learning Hub",
+        docTitle: "Teacher Classroom Management",
+        appTitle: "Teacher Classroom Hub",
         loading: "Connecting to classroom system...",
         langSwitch: "🌐 中文",
-        loginTitle: "S2 English Learning Hub",
-        loginSubtitle: "Sign in with Teacher or Student account",
-        emailLabel: "Email / Student ID",
-        emailPlaceholder: "Teacher email / Student ID (e.g. 2a01)",
+        loginTitle: "Teacher Classroom Hub",
+        loginSubtitle: "Authorized Teacher Accounts Only",
+        emailLabel: "Teacher Email",
+        emailPlaceholder: "Enter authorized teacher email",
         passwordLabel: "Password",
         passwordPlaceholder: "Enter password",
         loginBtn: "Sign In",
         loggingIn: "Signing in...",
-        loginErr: "Invalid account or password. Please try again.",
-        teacherBadge: "👩‍🏫 Teacher",
-        studentBadge: "🎓 Student",
+        loginErr: "Invalid email or password. Please try again.",
+        notTeacherErr: "Access denied. This system is restricted to teachers only.",
+        teacherBadge: "Teacher",
         tabWheel: "🎡 Name Wheel",
         tabSeating: "🪑 Seating & Records",
-        tabMaterials: "📚 Online Learning",
         lockOn: "🔒 Projector Lock: ON",
         lockOff: "🔓 Projector Lock: OFF",
         lockBlockedToast: "🔒 Projector Lock is ON. Unlock at the top-right to open Seating Chart.",
@@ -690,16 +607,7 @@
         seatSelectedToast: "Student selected. Tap target seat to move or swap.",
         seatUpdatedToast: "✅ Seat updated",
         gridUpdatedToast: "Grid size updated",
-        materialsTitle: "📚 Online Learning Zone",
-        materialsSubtitle: "Videos, PDF notes & interactive tasks (Kahoot game coming next)",
-        addMaterialBtn: "➕ Add Material (Video / PDF / Link)",
-        noMatTeacher: "No materials yet. Click 'Add Material' to post YouTube videos or Google Drive PDFs.",
-        noMatStudent: "No learning materials posted yet.",
-        openLinkBtn: "🔗 Open External Link",
         deleteBtn: "Delete",
-        doneBtn: "✅ Completed",
-        markDoneBtn: "☑️ Mark as Completed",
-        progressSavedToast: "🎉 Progress recorded!",
         goodLabel: "👍 Good",
         badLabel: "👎 Bad",
         hwLabel: "📝 Missing HW",
@@ -730,21 +638,6 @@
         batchModalDesc: "Enter one student per line in the format: Class, Class No., Name (separated by commas).",
         importBtn: "Import",
         importSuccessToast: "✅ Students imported!",
-        addMatModalTitle: "➕ Add Learning Material",
-        matTitleLabel: "Title",
-        matTitlePlaceholder: "e.g. Unit 3 Passive Voice Video",
-        matTypeLabel: "Type",
-        typeYoutube: "🎬 YouTube Video",
-        typePdf: "📄 Google Drive PDF",
-        typeLink: "🔗 External Link",
-        matUrlLabel: "URL (paste standard share link)",
-        matDescLabel: "Description (optional)",
-        matDescPlaceholder: "Watch the video and complete WS p.2",
-        publishBtn: "Publish",
-        matMissingToast: "Please enter both title and URL",
-        matPublishedToast: "✅ Material published!",
-        confirmDeleteMat: "Delete this material?",
-        matDeletedToast: "Material deleted",
         noCsvToast: "No student data to export",
         csvHeaders: ["Class", "Class No.", "Name", "Good", "Bad", "Missing HW Count", "Missing HW Details", "Latest Note"],
         permDeniedToast: "⚠️ Permission denied! Check Firebase Rules for teacher emails."
@@ -759,16 +652,13 @@
     const state = {
       lang: localStorage.getItem("s2a_lang") || "zh",
       user: null,
-      isTeacher: false,
-      currentTab: "materials",
+      currentTab: "wheel",
       projectorLocked: false,
       seatingMode: "score",
       gridRows: 6,
       gridCols: 6,
       flipView: false,
       students: [],
-      materials: [],
-      completedIds: new Set(),
       selectedSeat: null,
       activeStudentId: null,
       editingPhotoBase64: null,
@@ -828,7 +718,6 @@
       document.querySelectorAll("[data-i18n]").forEach(el => {
         const key = el.getAttribute("data-i18n");
         if (el.tagName === "LABEL" && el.querySelector("input")) {
-          // Preserve child input (e.g., file upload label)
           const input = el.querySelector("input");
           el.textContent = t(key);
           el.appendChild(input);
@@ -841,15 +730,12 @@
       });
 
       if (state.user) {
-        document.getElementById("user-badge").textContent = state.isTeacher
-          ? `${t("teacherBadge")} (${state.user.email})`
-          : `${t("studentBadge")} (${state.user.email.replace("@s2a.local", "")})`;
+        document.getElementById("user-badge").textContent = `${t("teacherBadge")} (${state.user.email})`;
       }
 
       updateProjectorLockBtn();
       drawWheel();
       renderSeating();
-      renderMaterials();
       if (!document.getElementById("score-modal").classList.contains("hidden") && state.activeStudentId) {
         refreshScoreModal();
       }
@@ -867,22 +753,26 @@
       applyLanguage();
     }
 
-    // Sync initial wheel checkboxes & language
     document.getElementById("wheel-show-class").checked = state.wheelShowClass;
     document.getElementById("wheel-show-no").checked = state.wheelShowNo;
     document.getElementById("wheel-show-name").checked = state.wheelShowName;
     applyLanguage();
 
-    // ==================== AUTH ====================
+    // ==================== AUTH (TEACHER ONLY) ====================
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const rawInput = document.getElementById("login-email").value.trim().toLowerCase();
-      const email = rawInput.includes("@") ? rawInput : `${rawInput}@s2a.local`;
+      const email = document.getElementById("login-email").value.trim().toLowerCase();
       const password = document.getElementById("login-password").value;
       const errEl = document.getElementById("login-error");
       const btn = document.getElementById("login-btn");
 
       errEl.classList.add("hidden");
+      if (!TEACHER_EMAILS.includes(email)) {
+        errEl.textContent = t("notTeacherErr");
+        errEl.classList.remove("hidden");
+        return;
+      }
+
       btn.disabled = true;
       btn.textContent = t("loggingIn");
 
@@ -897,73 +787,61 @@
       }
     });
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       state.unsubs.forEach(u => u());
       state.unsubs = [];
       document.getElementById("loading-screen").classList.add("hidden");
 
       if (!user) {
         state.user = null;
-        state.isTeacher = false;
         document.getElementById("main-app").classList.add("hidden");
         document.getElementById("login-screen").classList.remove("hidden");
         return;
       }
 
-      state.user = user;
-      state.isTeacher = TEACHER_EMAILS.includes((user.email || "").toLowerCase());
+      const isTeacher = TEACHER_EMAILS.includes((user.email || "").toLowerCase());
+      if (!isTeacher) {
+        await signOut(auth);
+        const errEl = document.getElementById("login-error");
+        errEl.textContent = t("notTeacherErr");
+        errEl.classList.remove("hidden");
+        return;
+      }
 
+      state.user = user;
       document.getElementById("login-screen").classList.add("hidden");
       document.getElementById("main-app").classList.remove("hidden");
-      document.querySelectorAll(".teacher-only").forEach(el => {
-        el.classList.toggle("hidden", !state.isTeacher);
-      });
 
       applyLanguage();
       subscribeData();
-      switchTab(state.isTeacher ? "wheel" : "materials");
+      switchTab("wheel");
     });
 
     // ==================== FIRESTORE SUBSCRIPTIONS ====================
     function subscribeData() {
-      const matQ = query(collection(db, "materials"), orderBy("createdAt", "desc"));
-      state.unsubs.push(onSnapshot(matQ, (snap) => {
-        state.materials = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderMaterials();
-      }, (err) => console.error("Materials error:", err)));
+      state.unsubs.push(onSnapshot(doc(db, "teacher_data", "s2a_settings"), (snap) => {
+        if (snap.exists()) {
+          const d = snap.data();
+          state.gridRows = d.rows || 6;
+          state.gridCols = d.cols || 6;
+          state.flipView = !!d.flipView;
+          document.getElementById("grid-rows").value = state.gridRows;
+          document.getElementById("grid-cols").value = state.gridCols;
+        }
+        renderSeating();
+      }, (err) => {
+        if (err.code === "permission-denied") showToast(t("permDeniedToast"), 6000);
+      }));
 
-      if (!state.isTeacher) {
-        state.unsubs.push(onSnapshot(collection(db, "student_progress", state.user.uid, "completed"), (snap) => {
-          state.completedIds = new Set(snap.docs.map(d => d.id));
-          renderMaterials();
-        }));
-      }
-
-      if (state.isTeacher) {
-        state.unsubs.push(onSnapshot(doc(db, "teacher_data", "s2a_settings"), (snap) => {
-          if (snap.exists()) {
-            const d = snap.data();
-            state.gridRows = d.rows || 6;
-            state.gridCols = d.cols || 6;
-            state.flipView = !!d.flipView;
-            document.getElementById("grid-rows").value = state.gridRows;
-            document.getElementById("grid-cols").value = state.gridCols;
-          }
-          renderSeating();
-        }, (err) => {
-          if (err.code === "permission-denied") showToast(t("permDeniedToast"), 6000);
-        }));
-
-        state.unsubs.push(onSnapshot(collection(db, "teacher_data", "s2a", "students"), (snap) => {
-          state.students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          state.students.sort((a, b) => (a.classNo || "").localeCompare(b.classNo || "", undefined, { numeric: true }));
-          renderSeating();
-          drawWheel();
-          if (state.activeStudentId && !document.getElementById("score-modal").classList.contains("hidden")) {
-            refreshScoreModal();
-          }
-        }));
-      }
+      state.unsubs.push(onSnapshot(collection(db, "teacher_data", "s2a", "students"), (snap) => {
+        state.students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        state.students.sort((a, b) => (a.classNo || "").localeCompare(b.classNo || "", undefined, { numeric: true }));
+        renderSeating();
+        drawWheel();
+        if (state.activeStudentId && !document.getElementById("score-modal").classList.contains("hidden")) {
+          refreshScoreModal();
+        }
+      }));
     }
 
     // ==================== NAVIGATION ====================
@@ -972,10 +850,8 @@
         showToast(t("lockBlockedToast"));
         return;
       }
-      if (!state.isTeacher && (tab === "wheel" || tab === "seating")) return;
-
       state.currentTab = tab;
-      ["wheel", "seating", "materials"].forEach(tName => {
+      ["wheel", "seating"].forEach(tName => {
         document.getElementById(`page-${tName}`).classList.toggle("hidden", tName !== tab);
         const btn = document.getElementById(`tab-btn-${tName}`);
         if (btn) {
@@ -989,13 +865,13 @@
 
     function updateProjectorLockBtn() {
       const btn = document.getElementById("projector-lock-btn");
-      if (!btn || !state.isTeacher) return;
+      if (!btn) return;
       if (state.projectorLocked) {
         btn.textContent = t("lockOn");
-        btn.className = "teacher-only px-3 py-1.5 rounded-lg text-xs font-semibold border bg-rose-50 text-rose-700 border-rose-300";
+        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold border bg-rose-50 text-rose-700 border-rose-300";
       } else {
         btn.textContent = t("lockOff");
-        btn.className = "teacher-only px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white text-slate-600 border-slate-300";
+        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white text-slate-600 border-slate-300";
       }
     }
 
@@ -1363,7 +1239,7 @@
       showToast(t("seatUpdatedToast"));
     }
 
-    // ==================== SCORING MODAL (NO MINUS + MISSING HW INPUT) ====================
+    // ==================== SCORING MODAL ====================
     function getLogDisplayLabel(log) {
       if (log.type === "good") return t("goodLabel");
       if (log.type === "bad") return t("badLabel");
@@ -1503,7 +1379,6 @@
 
     function removeEditingLog(idx) {
       const removed = state.editingLogs.splice(idx, 1)[0];
-      // Conveniently auto-decrement matching counter if > 0 (teacher can still manually adjust before saving)
       if (removed) {
         const type = removed.type || ((removed.label || "").includes("好") ? "good" : (removed.label || "").includes("壞") ? "bad" : (removed.label || "").includes("欠交") ? "missingHw" : null);
         const inputMap = { good: "es-good", bad: "es-bad", missingHw: "es-hw" };
@@ -1629,102 +1504,6 @@
       URL.revokeObjectURL(url);
     }
 
-    // ==================== PAGE 3: ONLINE MATERIALS ====================
-    function toEmbedUrl(type, url) {
-      if (type === "youtube") {
-        const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-        return m ? `https://www.youtube.com/embed/${m[1]}` : url;
-      }
-      if (type === "pdf") {
-        const m = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-        return m ? `https://drive.google.com/file/d/${m[1]}/preview` : url;
-      }
-      return url;
-    }
-
-    function renderMaterials() {
-      const container = document.getElementById("materials-list");
-      if (!container) return;
-
-      if (state.materials.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full bg-white rounded-2xl p-10 text-center text-slate-400">
-            <div class="text-4xl mb-2">📂</div>
-            <p>${escapeHtml(state.isTeacher ? t("noMatTeacher") : t("noMatStudent"))}</p>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = state.materials.map(m => {
-        const embedUrl = toEmbedUrl(m.type, m.url);
-        const isDone = state.completedIds.has(m.id);
-        let previewHtml = "";
-        if (m.type === "youtube") {
-          previewHtml = `<iframe class="w-full aspect-video rounded-xl border" src="${escapeHtml(embedUrl)}" allowfullscreen></iframe>`;
-        } else if (m.type === "pdf") {
-          previewHtml = `<iframe class="w-full h-80 rounded-xl border bg-slate-50" src="${escapeHtml(embedUrl)}"></iframe>`;
-        } else {
-          previewHtml = `<a href="${escapeHtml(m.url)}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-sm hover:bg-indigo-100">${escapeHtml(t("openLinkBtn"))}</a>`;
-        }
-
-        return `
-          <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col justify-between gap-4">
-            <div class="space-y-3">
-              <div class="flex justify-between items-start gap-2">
-                <h3 class="font-bold text-lg text-slate-800">${escapeHtml(m.title)}</h3>
-                ${state.isTeacher ? `<button onclick="app.deleteMaterial('${m.id}')" class="text-xs text-rose-500 hover:underline shrink-0">${escapeHtml(t("deleteBtn"))}</button>` : ""}
-              </div>
-              ${m.desc ? `<p class="text-sm text-slate-600">${escapeHtml(m.desc)}</p>` : ""}
-              ${previewHtml}
-            </div>
-            ${!state.isTeacher ? `
-              <div class="pt-3 border-t flex justify-end">
-                <button onclick="app.toggleMaterialDone('${m.id}')"
-                  class="px-4 py-2 rounded-xl text-sm font-bold transition ${isDone ? "bg-emerald-100 text-emerald-700" : "bg-indigo-600 text-white hover:bg-indigo-700"}">
-                  ${escapeHtml(isDone ? t("doneBtn") : t("markDoneBtn"))}
-                </button>
-              </div>` : ""}
-          </div>`;
-      }).join("");
-    }
-
-    function openAddMaterialModal() {
-      ["mat-title", "mat-url", "mat-desc"].forEach(id => document.getElementById(id).value = "");
-      document.getElementById("material-modal").classList.remove("hidden");
-    }
-
-    async function saveMaterial() {
-      const title = document.getElementById("mat-title").value.trim();
-      const type = document.getElementById("mat-type").value;
-      const url = document.getElementById("mat-url").value.trim();
-      const desc = document.getElementById("mat-desc").value.trim();
-      if (!title || !url) { showToast(t("matMissingToast")); return; }
-
-      await addDoc(collection(db, "materials"), {
-        title, type, url, desc,
-        createdAt: Date.now(),
-        createdBy: state.user.email
-      });
-      closeModal("material-modal");
-      showToast(t("matPublishedToast"));
-    }
-
-    async function deleteMaterial(id) {
-      if (!confirm(t("confirmDeleteMat"))) return;
-      await deleteDoc(doc(db, "materials", id));
-      showToast(t("matDeletedToast"));
-    }
-
-    async function toggleMaterialDone(materialId) {
-      const ref = doc(db, "student_progress", state.user.uid, "completed", materialId);
-      if (state.completedIds.has(materialId)) {
-        await deleteDoc(ref);
-      } else {
-        await setDoc(ref, { completedAt: Date.now(), email: state.user.email });
-        showToast(t("progressSavedToast"));
-      }
-    }
-
     function closeModal(id) {
       document.getElementById(id).classList.add("hidden");
     }
@@ -1739,8 +1518,7 @@
       onSeatDragOver, onSeatDragLeave, onSeatDrop, onSeatClick, openScoreModal, addScore,
       addMissingHw, openEditStudentModal, updateEditingLogNote, removeEditingLog,
       handlePhotoUpload, saveEditingStudent, deleteEditingStudent, openBatchModal,
-      importBatchStudents, exportCSV, openAddMaterialModal, saveMaterial, deleteMaterial,
-      toggleMaterialDone, closeModal, logout
+      importBatchStudents, exportCSV, closeModal, logout
     };
   </script>
 </body>
