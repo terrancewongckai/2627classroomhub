@@ -6,9 +6,29 @@
   <title>老師課堂管理系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif; }
-    .seat-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-    .seat-card:hover { transform: translateY(-2px); }
+    :root {
+      --eye-bg: #e3f0e7;        /* 柔和護眼淺豆綠底色 */
+      --eye-card: #f6fbf8;      /* 溫潤薄荷乳白卡片（去純白刺眼感） */
+      --eye-soft: #ebf5ee;      /* 淺綠次要區塊 */
+      --eye-muted: #d9eadf;     /* 柔綠選單底色 */
+      --eye-border: #c9dfd1;    /* 柔和淺綠邊框 */
+      --eye-text: #1f3329;      /* 深墨綠文字（柔和護眼高對比） */
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      background-color: var(--eye-bg) !important;
+      color: var(--eye-text);
+    }
+    /* 將純白與冷灰色溫和過渡為護眼淺綠系 */
+    .eye-surface { background-color: var(--eye-card) !important; }
+    .bg-white { background-color: var(--eye-card) !important; }
+    .bg-slate-50 { background-color: var(--eye-soft) !important; }
+    .bg-slate-100 { background-color: var(--eye-muted) !important; }
+    .border-slate-200 { border-color: var(--eye-border) !important; }
+    .border-slate-100 { border-color: #dcebe2 !important; }
+
+    .seat-card { transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; }
+    .seat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px -4px rgba(31, 77, 56, 0.12); }
     .seat-selected { outline: 4px solid #f59e0b; transform: scale(1.04); z-index: 10; }
     .drag-over { background-color: #fef3c7 !important; border-color: #f59e0b !important; }
     .name-two-lines {
@@ -19,47 +39,57 @@
       word-break: break-word;
       overflow-wrap: anywhere;
     }
-    @keyframes popIn { 0% { transform: scale(0.88); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .animate-pop { animation: popIn 0.2s ease-out forwards; }
+    @keyframes flashRing { 0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.5); } 50% { box-shadow: 0 0 0 14px rgba(225, 29, 72, 0); } }
+    .timer-done-flash { animation: flashRing 1s infinite; }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
+<body class="min-h-screen">
 
   <!-- Loading Overlay -->
-  <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
-    <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-    <p id="loading-text" class="text-slate-600 font-medium">正在連線至課室系統...</p>
+  <div id="loading-screen" class="fixed inset-0 eye-surface z-50 flex flex-col items-center justify-center">
+    <div class="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+    <p id="loading-text" class="text-emerald-900 font-medium">正在連線至課室系統...</p>
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm"></div>
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-emerald-950 text-emerald-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm"></div>
 
-  <!-- Login Screen (Teacher Only) -->
-  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-800 via-indigo-900 to-slate-900 relative">
+  <!-- Floating Mini Timer (visible when timer runs on another tab) -->
+  <div id="mini-timer" onclick="app.switchTab('tools')"
+    class="hidden fixed bottom-5 left-5 z-40 cursor-pointer bg-emerald-950 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 hover:bg-emerald-900 transition">
+    <span class="text-lg">⏱️</span>
+    <span id="mini-timer-display" class="font-mono text-xl font-extrabold tracking-wider">00:00</span>
+    <span class="text-xs text-emerald-300 font-semibold" data-i18n="miniTimerReturn">返回</span>
+  </div>
+
+  <!-- Login Screen (Teacher Only - Soft Eye-Care Green) -->
+  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-100 via-teal-100 to-green-200 relative">
     <button onclick="app.toggleLang()"
-      class="lang-toggle-btn absolute top-4 right-4 px-3.5 py-2 bg-white/90 hover:bg-white text-indigo-700 rounded-xl text-xs font-bold shadow transition">
+      class="lang-toggle-btn absolute top-4 right-4 px-3.5 py-2 bg-white hover:bg-emerald-50 text-teal-800 border border-emerald-200 rounded-xl text-xs font-bold shadow-sm transition">
       🌐 EN
     </button>
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-pop">
+    <div class="bg-white rounded-2xl shadow-xl border border-emerald-200/80 w-full max-w-md p-8 animate-pop">
       <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-100 text-3xl mb-3">👩‍🏫</div>
-        <h1 class="text-2xl font-bold text-slate-800" data-i18n="loginTitle">老師課堂管理系統</h1>
-        <p class="text-sm text-slate-500 mt-1" data-i18n="loginSubtitle">僅限授權老師帳號登入</p>
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-100 text-3xl mb-3">👩‍🏫</div>
+        <h1 class="text-2xl font-bold text-emerald-950" data-i18n="loginTitle">老師課堂管理系統</h1>
+        <p class="text-sm text-emerald-700/80 mt-1" data-i18n="loginSubtitle">僅限授權老師帳號登入</p>
       </div>
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="emailLabel">老師電郵</label>
+          <label class="block text-sm font-medium text-emerald-900 mb-1" data-i18n="emailLabel">老師電郵</label>
           <input id="login-email" type="email" required data-i18n-placeholder="emailPlaceholder" placeholder="請輸入授權老師電郵"
-            class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            class="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="passwordLabel">密碼</label>
+          <label class="block text-sm font-medium text-emerald-900 mb-1" data-i18n="passwordLabel">密碼</label>
           <input id="login-password" type="password" required data-i18n-placeholder="passwordPlaceholder" placeholder="請輸入密碼"
-            class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            class="w-full px-4 py-2.5 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none" />
         </div>
         <p id="login-error" class="hidden text-sm text-rose-600 bg-rose-50 p-3 rounded-lg"></p>
         <button type="submit" id="login-btn"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow transition" data-i18n="loginBtn">
+          class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl shadow transition" data-i18n="loginBtn">
           登入系統
         </button>
       </form>
@@ -69,40 +99,63 @@
   <!-- Main App -->
   <div id="main-app" class="hidden min-h-screen flex flex-col">
     <!-- Top Navigation Bar -->
-    <header class="bg-white shadow-sm sticky top-0 z-30">
+    <header class="bg-white border-b border-emerald-200/70 shadow-sm sticky top-0 z-30">
       <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">👩‍🏫</span>
-          <div>
-            <div class="font-bold text-slate-800 leading-tight" data-i18n="appTitle">老師課堂工具</div>
-            <div id="user-badge" class="text-xs text-slate-500"></div>
+        <!-- Brand + Class Switcher -->
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">👩‍🏫</span>
+            <div class="hidden sm:block">
+              <div class="font-bold text-emerald-950 leading-tight text-sm" data-i18n="appTitle">老師課堂工具</div>
+              <div id="user-badge" class="text-[11px] text-emerald-700/75"></div>
+            </div>
+          </div>
+
+          <!-- Class Dropdown -->
+          <div class="flex items-center gap-1 bg-emerald-100/80 border border-emerald-300/70 rounded-xl px-2 py-1">
+            <span class="text-xs font-bold text-teal-800 pl-1" data-i18n="classLabel">班別:</span>
+            <select id="class-selector" onchange="app.selectClass(this.value)"
+              class="bg-transparent text-sm font-extrabold text-emerald-950 focus:outline-none pr-1 cursor-pointer"></select>
+            <button onclick="app.openClassManager()" title="管理班別"
+              class="w-7 h-7 rounded-lg bg-white hover:bg-emerald-50 text-teal-800 flex items-center justify-center text-xs shadow-sm transition">
+              ⚙️
+            </button>
           </div>
         </div>
 
         <!-- Tabs -->
-        <nav class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+        <nav class="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl">
           <button id="tab-btn-wheel" onclick="app.switchTab('wheel')"
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabWheel">
+            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition" data-i18n="tabWheel">
             🎡 抽籤轉盤
           </button>
+          <button id="tab-btn-tools" onclick="app.switchTab('tools')"
+            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition" data-i18n="tabTools">
+            ⏱️ 計時 / 分組
+          </button>
           <button id="tab-btn-seating" onclick="app.switchTab('seating')"
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabSeating">
-            🪑 座位表紀錄
+            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition" data-i18n="tabSeating">
+            🪑 座位表
+          </button>
+          <button id="tab-btn-hw" onclick="app.switchTab('hw')"
+            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center gap-1.5">
+            <span data-i18n="tabHw">📋 追功課</span>
+            <span id="hw-pending-badge" class="hidden px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-amber-500 text-white">0</span>
           </button>
         </nav>
 
         <!-- Right Controls -->
         <div class="flex items-center gap-2">
           <button onclick="app.toggleLang()"
-            class="lang-toggle-btn px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+            class="lang-toggle-btn px-2.5 py-1.5 rounded-lg text-xs font-bold border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-teal-800 transition">
             🌐 EN
           </button>
           <button id="projector-lock-btn" onclick="app.toggleProjectorLock()"
-            class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition">
+            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition">
             🔓 投影安全鎖：關
           </button>
           <button onclick="app.logout()"
-            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-700 transition" data-i18n="logoutBtn">
+            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100/90 hover:bg-emerald-200/80 text-emerald-900 transition" data-i18n="logoutBtn">
             登出
           </button>
         </div>
@@ -116,15 +169,18 @@
       <section id="page-wheel" class="hidden">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <!-- Wheel Canvas Area -->
-          <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center">
+          <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col items-center">
             <div class="w-full flex flex-wrap justify-between items-center mb-3 gap-2">
-              <h2 class="text-xl font-bold text-slate-800" data-i18n="wheelTitle">🎡 隨機抽籤轉盤</h2>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-bold text-emerald-950" data-i18n="wheelTitle">🎡 隨機抽籤轉盤</h2>
+                <span id="wheel-absent-pill" class="hidden px-2.5 py-0.5 bg-slate-100 text-emerald-800 rounded-full text-xs font-semibold"></span>
+              </div>
               <div class="flex flex-wrap items-center gap-3 text-sm">
                 <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                  <input id="wheel-remove-picked" type="checkbox" checked class="w-4 h-4 accent-indigo-600 rounded" />
+                  <input id="wheel-remove-picked" type="checkbox" checked class="w-4 h-4 accent-teal-600 rounded" />
                   <span data-i18n="wheelRemovePicked">抽中後暫時移出</span>
                 </label>
-                <button onclick="app.resetWheelPool()" class="text-indigo-600 hover:underline font-medium">
+                <button onclick="app.resetWheelPool()" class="text-teal-700 hover:underline font-medium">
                   <span data-i18n="wheelReset">↺ 重置名單</span> (<span id="wheel-count">0</span>)
                 </button>
               </div>
@@ -132,18 +188,18 @@
 
             <!-- Wheel Label Display Options -->
             <div class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-4 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span class="font-bold text-slate-600" data-i18n="wheelDisplayLabel">轉盤顯示內容：</span>
+              <span class="font-bold text-emerald-900" data-i18n="wheelDisplayLabel">轉盤顯示內容：</span>
               <div class="flex flex-wrap items-center gap-4">
-                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-slate-700">
-                  <input id="wheel-show-class" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-indigo-600 rounded" />
+                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-emerald-900">
+                  <input id="wheel-show-class" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-teal-600 rounded" />
                   <span data-i18n="optClass">班別</span>
                 </label>
-                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-slate-700">
-                  <input id="wheel-show-no" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-indigo-600 rounded" />
+                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-emerald-900">
+                  <input id="wheel-show-no" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-teal-600 rounded" />
                   <span data-i18n="optNo">班號</span>
                 </label>
-                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-slate-700">
-                  <input id="wheel-show-name" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-indigo-600 rounded" />
+                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-emerald-900">
+                  <input id="wheel-show-name" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-teal-600 rounded" />
                   <span data-i18n="optName">姓名</span>
                 </label>
               </div>
@@ -156,23 +212,23 @@
             </div>
 
             <button id="spin-btn" onclick="app.spinWheel()"
-              class="mt-5 px-10 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xl font-bold rounded-2xl shadow-lg active:scale-95 transition" data-i18n="spinBtn">
+              class="mt-5 px-10 py-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white text-xl font-bold rounded-2xl shadow-lg active:scale-95 transition" data-i18n="spinBtn">
               🎯 開始抽籤！
             </button>
           </div>
 
           <!-- Right Panel: Result & Quick Scoring -->
           <div class="lg:col-span-4 space-y-4">
-            <div class="bg-white rounded-2xl shadow-sm p-6 text-center">
-              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3" data-i18n="winnerHeading">今次抽中同學</h3>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
+              <h3 class="text-sm font-semibold text-emerald-700/70 uppercase tracking-wider mb-3" data-i18n="winnerHeading">今次抽中同學</h3>
               <div id="wheel-winner-box" class="py-6">
-                <p class="text-slate-400 text-sm" data-i18n="winnerEmpty">按下「開始抽籤」抽出幸運同學</p>
+                <p class="text-emerald-700/60 text-sm" data-i18n="winnerEmpty">按下「開始抽籤」抽出幸運同學</p>
               </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm p-5">
-              <h3 class="font-bold text-slate-700 mb-2 text-sm" data-i18n="wheelHistoryHeading">已抽中紀錄（本堂）</h3>
-              <div id="wheel-history" class="flex flex-wrap gap-1.5 text-xs text-slate-500">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <h3 class="font-bold text-emerald-900 mb-2 text-sm" data-i18n="wheelHistoryHeading">已抽中紀錄（本堂）</h3>
+              <div id="wheel-history" class="flex flex-wrap gap-1.5 text-xs text-emerald-700/70">
                 <span data-i18n="noRecords">暫無紀錄</span>
               </div>
             </div>
@@ -180,28 +236,136 @@
         </div>
       </section>
 
-      <!-- ==================== PAGE 2: SEATING CHART ==================== -->
+      <!-- ==================== PAGE 2: TIMER & RANDOM GROUPING (PROJECTOR SAFE) ==================== -->
+      <section id="page-tools" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Left: Classroom Countdown Timer -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-bold text-emerald-950" data-i18n="timerTitle">⏱️ 課堂倒數計時器</h2>
+              <span id="timer-status-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-emerald-800" data-i18n="timerReady">待命中</span>
+            </div>
+
+            <!-- Big Display (Soft Deep Forest Chalkboard) -->
+            <div id="timer-display-box" class="bg-emerald-950 text-emerald-50 rounded-2xl p-6 text-center transition">
+              <div id="timer-display" class="font-mono text-6xl sm:text-7xl font-extrabold tracking-widest">03:00</div>
+              <div class="w-full h-2.5 bg-emerald-800/80 rounded-full overflow-hidden mt-5">
+                <div id="timer-progress" class="h-full bg-emerald-400 transition-all duration-300" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <!-- Presets -->
+            <div>
+              <div class="text-xs font-bold text-emerald-800/80 mb-2" data-i18n="timerPresets">快捷時間：</div>
+              <div class="grid grid-cols-5 gap-2">
+                <button onclick="app.setTimerPreset(60)" class="py-2 bg-slate-100 hover:bg-emerald-200/70 text-emerald-900 rounded-xl text-xs font-bold transition">1m</button>
+                <button onclick="app.setTimerPreset(120)" class="py-2 bg-slate-100 hover:bg-emerald-200/70 text-emerald-900 rounded-xl text-xs font-bold transition">2m</button>
+                <button onclick="app.setTimerPreset(180)" class="py-2 bg-slate-100 hover:bg-emerald-200/70 text-emerald-900 rounded-xl text-xs font-bold transition">3m</button>
+                <button onclick="app.setTimerPreset(300)" class="py-2 bg-slate-100 hover:bg-emerald-200/70 text-emerald-900 rounded-xl text-xs font-bold transition">5m</button>
+                <button onclick="app.setTimerPreset(600)" class="py-2 bg-slate-100 hover:bg-emerald-200/70 text-emerald-900 rounded-xl text-xs font-bold transition">10m</button>
+              </div>
+            </div>
+
+            <!-- Custom Input -->
+            <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <span class="text-xs font-bold text-emerald-900 shrink-0" data-i18n="timerCustom">自訂：</span>
+              <input id="timer-custom-min" type="number" min="0" max="99" value="3" class="w-16 px-2 py-1.5 border border-slate-200 rounded-lg text-sm font-bold text-center bg-white" />
+              <span class="text-xs font-semibold text-emerald-800/80" data-i18n="timerMinUnit">分</span>
+              <input id="timer-custom-sec" type="number" min="0" max="59" value="0" class="w-16 px-2 py-1.5 border border-slate-200 rounded-lg text-sm font-bold text-center bg-white" />
+              <span class="text-xs font-semibold text-emerald-800/80" data-i18n="timerSecUnit">秒</span>
+              <button onclick="app.applyCustomTimer()" class="ml-auto px-3 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold" data-i18n="timerSetBtn">設定</button>
+            </div>
+
+            <!-- Controls -->
+            <div class="grid grid-cols-2 gap-3">
+              <button id="timer-start-btn" onclick="app.toggleTimer()"
+                class="py-3.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-base shadow transition" data-i18n="timerStart">
+                ▶️ 開始計時
+              </button>
+              <button onclick="app.resetTimer()"
+                class="py-3.5 bg-slate-100 hover:bg-emerald-200/80 text-emerald-900 rounded-xl font-bold text-base transition" data-i18n="timerReset">
+                ↺ 重置
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Random Grouping + Group Scoring -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-xl font-bold text-emerald-950" data-i18n="groupTitle">👥 一鍵隨機分組 ＋ 小組加分</h2>
+              <label class="flex items-center gap-1.5 text-xs font-semibold text-emerald-900 cursor-pointer select-none">
+                <input id="group-exclude-absent" type="checkbox" checked class="w-4 h-4 accent-teal-600 rounded" />
+                <span data-i18n="groupExcludeAbsent">自動排除今日缺席同學</span>
+              </label>
+            </div>
+
+            <!-- Grouping Controls -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-wrap items-center gap-3">
+              <select id="group-mode" class="px-3 py-2 border border-slate-200 rounded-xl text-sm font-semibold bg-white">
+                <option value="size" data-i18n="groupModeSize">按「每組人數」分組</option>
+                <option value="count" data-i18n="groupModeCount">按「總組數」分組</option>
+              </select>
+              <input id="group-num" type="number" min="2" max="20" value="4"
+                class="w-20 px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-center bg-white" />
+              <button onclick="app.generateGroups()"
+                class="px-5 py-2 bg-teal-700 hover:bg-teal-800 active:scale-95 text-white rounded-xl text-sm font-bold shadow transition" data-i18n="generateGroupsBtn">
+                🎲 立即隨機分組
+              </button>
+              <button onclick="app.clearGroups()"
+                class="ml-auto px-3 py-2 bg-slate-100 hover:bg-emerald-200/80 text-emerald-900 rounded-xl text-xs font-bold transition" data-i18n="clearGroupsBtn">
+                清除
+              </button>
+            </div>
+
+            <!-- Groups Display Area -->
+            <div id="groups-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="col-span-full py-12 text-center text-emerald-700/60 text-sm" data-i18n="groupEmptyHint">
+                揀選分組人數後按「立即隨機分組」，完成後可直接投影並幫成組加分。
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== PAGE 3: SEATING CHART (LOCKABLE) ==================== -->
       <section id="page-seating" class="hidden space-y-4">
         <!-- Toolbar -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-2">
-            <h2 class="text-xl font-bold text-slate-800 mr-2" data-i18n="seatingTitle">🪑 課室座位表</h2>
+            <h2 class="text-xl font-bold text-emerald-950 mr-1" data-i18n="seatingTitle">🪑 課室座位表</h2>
             <button id="mode-score-btn" onclick="app.setSeatingMode('score')"
-              class="px-4 py-2 rounded-xl text-sm font-bold transition" data-i18n="modeScore">
-              ✏️ 上堂記分模式
+              class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition" data-i18n="modeScore">
+              ✏️ 記分模式
+            </button>
+            <button id="mode-attendance-btn" onclick="app.setSeatingMode('attendance')"
+              class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition" data-i18n="modeAttendance">
+              📋 今日點名
             </button>
             <button id="mode-edit-btn" onclick="app.setSeatingMode('edit')"
-              class="px-4 py-2 rounded-xl text-sm font-bold transition" data-i18n="modeEdit">
-              🛠️ 後台管理 / 調位模式
+              class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition" data-i18n="modeEdit">
+              🛠️ 後台調位
             </button>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="app.toggleFlipView()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-semibold">
+            <button onclick="app.toggleFlipView()" class="px-3 py-2 bg-slate-100 hover:bg-emerald-200/70 text-emerald-950 rounded-xl text-xs font-semibold">
               🔄 <span data-i18n="flipView">切換視角</span>（<span id="view-label">講台在上方</span>）
             </button>
-            <button onclick="app.exportCSV()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold border border-emerald-200" data-i18n="exportCsv">
-              📥 匯出 Excel 紀錄
+            <button onclick="app.exportCSV()" class="px-3 py-2 bg-emerald-100/80 hover:bg-emerald-200/80 text-emerald-900 rounded-xl text-xs font-semibold border border-emerald-300/70" data-i18n="exportCsv">
+              📥 匯出 Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- Attendance Banner -->
+        <div id="seating-attendance-bar" class="hidden bg-sky-50 border border-sky-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-sm text-sky-900 font-medium">
+            📋 <span data-i18n="attendanceTip">點擊學生座位即可切換「今日缺席／出席」。缺席同學會自動從抽籤轉盤同隨機分組中排除，翌日自動重置。</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="attendance-summary" class="text-xs font-extrabold px-3 py-1.5 bg-white border border-sky-200 text-sky-800 rounded-xl"></span>
+            <button onclick="app.clearTodayAbsences()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold" data-i18n="markAllPresentBtn">
+              全部設為出席
             </button>
           </div>
         </div>
@@ -222,7 +386,7 @@
               <button onclick="app.saveGridSize()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold" data-i18n="applyGrid">
                 套用格數
               </button>
-              <button onclick="app.openBatchModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" data-i18n="batchImportBtn">
+              <button onclick="app.openBatchModal()" class="px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-bold" data-i18n="batchImportBtn">
                 ➕ 批量匯入 / 新增學生
               </button>
             </div>
@@ -230,40 +394,97 @@
         </div>
 
         <!-- Classroom Grid Container -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 md:p-6 overflow-x-auto">
-          <div id="board-top" class="w-full max-w-md mx-auto mb-5 py-2 bg-slate-800 text-white text-center text-sm font-bold rounded-xl tracking-widest" data-i18n="blackboard">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6 overflow-x-auto">
+          <div id="board-top" class="w-full max-w-md mx-auto mb-5 py-2.5 bg-emerald-900 text-emerald-50 text-center text-sm font-bold rounded-xl tracking-widest border-b-4 border-amber-700/60 shadow-sm" data-i18n="blackboard">
             黑板 ／ 老師講台
           </div>
 
           <div id="seating-grid" class="grid gap-3 min-w-[680px]"></div>
 
-          <div id="board-bottom" class="hidden w-full max-w-md mx-auto mt-5 py-2 bg-slate-800 text-white text-center text-sm font-bold rounded-xl tracking-widest" data-i18n="blackboard">
+          <div id="board-bottom" class="hidden w-full max-w-md mx-auto mt-5 py-2.5 bg-emerald-900 text-emerald-50 text-center text-sm font-bold rounded-xl tracking-widest border-t-4 border-amber-700/60 shadow-sm" data-i18n="blackboard">
             黑板 ／ 老師講台
           </div>
         </div>
 
         <!-- Unassigned Students Pool -->
-        <div id="unassigned-box" class="hidden bg-white rounded-2xl shadow-sm p-4">
-          <h3 class="text-sm font-bold text-slate-700 mb-2" data-i18n="unassignedTitle">📦 未編排座位嘅同學（在調位模式下點選佢哋，再點空位即可放入）</h3>
+        <div id="unassigned-box" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-bold text-emerald-900 mb-2" data-i18n="unassignedTitle">📦 未編排座位嘅同學（在調位模式下點選佢哋，再點空位即可放入）</h3>
           <div id="unassigned-list" class="flex flex-wrap gap-2"></div>
         </div>
+      </section>
+
+      <!-- ==================== PAGE 4: MISSING HOMEWORK TRACKER (LOCKABLE) ==================== -->
+      <section id="page-hw" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-bold text-emerald-950" data-i18n="hwTrackerTitle">📋 追功課清單</h2>
+              <p class="text-xs sm:text-sm text-emerald-800/70 mt-0.5" data-i18n="hwTrackerSubtitle">一頁過查看全班欠交功課，同學補交後直接按「✅ 已補交」劃走（仍會保留歷史紀錄）</p>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+              <button id="hw-filter-pending" onclick="app.setHwFilterStatus('pending')"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition" data-i18n="hwTabPending">
+                ⏳ 未補交
+              </button>
+              <button id="hw-filter-resolved" onclick="app.setHwFilterStatus('resolved')"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition" data-i18n="hwTabResolved">
+                ✅ 已補交
+              </button>
+              <button id="hw-filter-all" onclick="app.setHwFilterStatus('all')"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition" data-i18n="hwTabAll">
+                全部
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Chips by Homework Name -->
+          <div id="hw-topic-chips" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- HW Tracker List -->
+        <div id="hw-tracker-list" class="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-emerald-100 overflow-hidden"></div>
       </section>
     </main>
   </div>
 
+  <!-- ==================== MODAL: MANAGE CLASSES ==================== -->
+  <div id="class-modal" class="hidden fixed inset-0 bg-emerald-950/45 z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-pop">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-emerald-950" data-i18n="classModalTitle">⚙️ 管理任教班別</h3>
+        <button onclick="app.closeModal('class-modal')" class="text-emerald-700/60 hover:text-emerald-950 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="flex gap-2">
+          <input id="new-class-name" type="text" data-i18n-placeholder="newClassPlaceholder" placeholder="輸入新班別名稱（如 2B、2C、3A）"
+            class="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+          <button onclick="app.addNewClass()" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-sm font-bold shrink-0" data-i18n="addClassBtn">
+            ➕ 新增
+          </button>
+        </div>
+        <div id="class-manager-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        <p class="text-[11px] text-emerald-700/70" data-i18n="classModalHint">提示：每班擁有獨立座位表與紀錄，隨時可於頁頂選單切換。</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL: STUDENT SCORING & MISSING HW ==================== -->
-  <div id="score-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden animate-pop">
-      <div class="bg-indigo-600 text-white p-5 flex items-center justify-between shrink-0">
+  <div id="score-modal" class="hidden fixed inset-0 bg-emerald-950/45 z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden animate-pop">
+      <div class="bg-teal-700 text-white p-5 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3 min-w-0">
-          <img id="sm-photo" class="w-14 h-14 rounded-full object-cover border-2 border-white bg-indigo-400 hidden shrink-0" />
-          <div id="sm-avatar" class="w-14 h-14 rounded-full bg-indigo-400 flex items-center justify-center text-xl font-bold border-2 border-white shrink-0"></div>
+          <img id="sm-photo" class="w-14 h-14 rounded-full object-cover border-2 border-emerald-100 bg-teal-500 hidden shrink-0" />
+          <div id="sm-avatar" class="w-14 h-14 rounded-full bg-teal-600 flex items-center justify-center text-xl font-bold border-2 border-emerald-100 shrink-0"></div>
           <div class="min-w-0">
             <div id="sm-name" class="text-lg font-bold leading-snug break-words"></div>
-            <div id="sm-sub" class="text-xs text-indigo-100"></div>
+            <div id="sm-sub" class="text-xs text-emerald-100"></div>
           </div>
         </div>
-        <button onclick="app.closeModal('score-modal')" class="text-white/80 hover:text-white text-2xl leading-none ml-2">&times;</button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="sm-absent-btn" onclick="app.toggleActiveStudentAbsent()"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold border transition"></button>
+          <button onclick="app.closeModal('score-modal')" class="text-white/80 hover:text-white text-2xl leading-none ml-1">&times;</button>
+        </div>
       </div>
 
       <div class="p-5 space-y-4 overflow-y-auto">
@@ -287,23 +508,25 @@
           </div>
         </div>
 
-        <!-- Optional Note for Good/Bad -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="behaviorNoteLabel">表現備註（選填，按上方按鈕時一併記錄）</label>
+        <!-- Behavior Note + Quick Tags -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-emerald-800/80" data-i18n="behaviorNoteLabel">表現備註（選填，可點快捷標籤）</label>
           <input id="sm-note" type="text" data-i18n-placeholder="behaviorNotePlaceholder" placeholder="例如：主動舉手答問題 / 上堂傾偈"
-            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+          <div id="behavior-quick-tags" class="flex flex-wrap gap-1.5 pt-0.5"></div>
         </div>
 
-        <!-- Dedicated Missing Homework Box -->
+        <!-- Dedicated Missing Homework Box + Quick Tags -->
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold text-amber-800" data-i18n="hwLabel">📝 欠交功課</span>
-            <span class="text-sm font-extrabold text-amber-700 bg-white px-2.5 py-0.5 rounded-full border border-amber-200">
+            <span class="text-xs font-extrabold text-amber-700 bg-white px-2.5 py-0.5 rounded-full border border-amber-200">
               <span data-i18n="hwCountPrefix">累計：</span><span id="sm-hw">0</span>
             </span>
           </div>
           <input id="sm-hw-note" type="text" data-i18n-placeholder="hwPlaceholder" placeholder="填寫欠交功課內容（如：WS 3、默書改正）"
             class="w-full px-3 py-2 text-sm bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+          <div id="hw-quick-tags" class="flex flex-wrap gap-1.5"></div>
           <button onclick="app.addMissingHw()"
             class="w-full py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl text-sm font-bold shadow-sm transition" data-i18n="addHwBtn">
             +1 記錄欠交功課
@@ -313,29 +536,29 @@
         <!-- Recent Logs -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-bold text-slate-500" data-i18n="recentLogsTitle">最近紀錄</span>
-            <span class="text-[11px] text-slate-400" data-i18n="editLogsHint">如入錯資料，請於「後台管理」修改</span>
+            <span class="text-xs font-bold text-emerald-800/80" data-i18n="recentLogsTitle">最近紀錄</span>
+            <span class="text-[11px] text-emerald-700/60" data-i18n="editLogsHint">如入錯資料，請於「後台調位」修改</span>
           </div>
-          <div id="sm-logs" class="max-h-40 overflow-y-auto space-y-1.5 text-xs bg-slate-50 p-3 rounded-xl border"></div>
+          <div id="sm-logs" class="max-h-44 overflow-y-auto space-y-1.5 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200"></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ==================== MODAL: BACKEND EDIT STUDENT, COUNTS & LOGS ==================== -->
-  <div id="edit-student-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden animate-pop">
-      <div class="px-6 py-4 border-b flex justify-between items-center shrink-0">
-        <h3 class="text-lg font-bold text-slate-800" data-i18n="editStudentTitle">🛠️ 後台編輯學生資料與紀錄</h3>
-        <button onclick="app.closeModal('edit-student-modal')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+  <div id="edit-student-modal" class="hidden fixed inset-0 bg-emerald-950/45 z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden animate-pop">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
+        <h3 class="text-lg font-bold text-emerald-950" data-i18n="editStudentTitle">🛠️ 後台編輯學生資料與紀錄</h3>
+        <button onclick="app.closeModal('edit-student-modal')" class="text-emerald-700/60 hover:text-emerald-950 text-2xl leading-none">&times;</button>
       </div>
 
       <div class="p-6 space-y-4 overflow-y-auto">
         <!-- Photo & Basic Info -->
         <div class="flex flex-col sm:flex-row items-center gap-4">
           <div class="flex flex-col items-center gap-2 shrink-0">
-            <img id="es-preview" class="w-20 h-20 rounded-full object-cover border-2 border-indigo-200 bg-slate-100" />
-            <label class="cursor-pointer px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold" data-i18n="uploadPhotoBtn">
+            <img id="es-preview" class="w-20 h-20 rounded-full object-cover border-2 border-emerald-200 bg-slate-100" />
+            <label class="cursor-pointer px-2.5 py-1 bg-emerald-100 text-teal-800 hover:bg-emerald-200 rounded-lg text-xs font-bold" data-i18n="uploadPhotoBtn">
               📷 更換相片
               <input id="es-photo-input" type="file" accept="image/*" class="hidden" onchange="app.handlePhotoUpload(event)" />
             </label>
@@ -343,24 +566,24 @@
           <div class="flex-1 w-full space-y-2">
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-xs font-semibold text-slate-600" data-i18n="optClass">班別</label>
-                <input id="es-class" type="text" class="w-full px-3 py-1.5 border rounded-xl text-sm" />
+                <label class="text-xs font-semibold text-emerald-900" data-i18n="optClass">班別</label>
+                <input id="es-class" type="text" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm" />
               </div>
               <div>
-                <label class="text-xs font-semibold text-slate-600" data-i18n="optNo">班號</label>
-                <input id="es-no" type="text" class="w-full px-3 py-1.5 border rounded-xl text-sm" />
+                <label class="text-xs font-semibold text-emerald-900" data-i18n="optNo">班號</label>
+                <input id="es-no" type="text" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm" />
               </div>
             </div>
             <div>
-              <label class="text-xs font-semibold text-slate-600" data-i18n="studentNameLabel">學生姓名</label>
-              <input id="es-name" type="text" class="w-full px-3 py-1.5 border rounded-xl text-sm" />
+              <label class="text-xs font-semibold text-emerald-900" data-i18n="studentNameLabel">學生姓名</label>
+              <input id="es-name" type="text" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm" />
             </div>
           </div>
         </div>
 
         <!-- Edit Counts Directly -->
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
-          <div class="text-xs font-bold text-slate-700" data-i18n="editCountsHeading">🔢 修正次數（如上堂入錯可直接修改數字）</div>
+          <div class="text-xs font-bold text-emerald-900" data-i18n="editCountsHeading">🔢 修正次數（如上堂入錯可直接修改數字）</div>
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block text-[11px] font-bold text-emerald-700 mb-1" data-i18n="goodLabel">👍 好表現</label>
@@ -379,20 +602,20 @@
 
         <!-- Edit / Delete Historical Logs -->
         <div>
-          <div class="text-xs font-bold text-slate-700 mb-1.5" data-i18n="editLogsHeading">📋 修改或刪除詳細紀錄（可改錯字或刪除誤入項目）</div>
+          <div class="text-xs font-bold text-emerald-900 mb-1.5" data-i18n="editLogsHeading">📋 修改或刪除詳細紀錄（可改錯字或刪除誤入項目）</div>
           <div id="es-logs-editor" class="max-h-48 overflow-y-auto space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200"></div>
         </div>
       </div>
 
-      <div class="px-6 py-3.5 border-t bg-slate-50 flex justify-between items-center shrink-0">
+      <div class="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
         <button onclick="app.deleteEditingStudent()" class="px-3 py-2 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold" data-i18n="deleteStudentBtn">
           🗑️ 刪除此學生
         </button>
         <div class="flex gap-2">
-          <button onclick="app.closeModal('edit-student-modal')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">
+          <button onclick="app.closeModal('edit-student-modal')" class="px-4 py-2 bg-slate-100 hover:bg-emerald-200/80 text-emerald-900 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">
             取消
           </button>
-          <button onclick="app.saveEditingStudent()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow" data-i18n="saveChangesBtn">
+          <button onclick="app.saveEditingStudent()" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-sm font-bold shadow" data-i18n="saveChangesBtn">
             儲存變更
           </button>
         </div>
@@ -401,20 +624,20 @@
   </div>
 
   <!-- ==================== MODAL: BATCH IMPORT STUDENTS ==================== -->
-  <div id="batch-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 animate-pop">
+  <div id="batch-modal" class="hidden fixed inset-0 bg-emerald-950/45 z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 space-y-4 animate-pop">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold" data-i18n="batchModalTitle">➕ 批量匯入全班學生</h3>
-        <button onclick="app.closeModal('batch-modal')" class="text-slate-400 hover:text-slate-700 text-2xl">&times;</button>
+        <h3 class="text-lg font-bold text-emerald-950" data-i18n="batchModalTitle">➕ 批量匯入全班學生</h3>
+        <button onclick="app.closeModal('batch-modal')" class="text-emerald-700/60 hover:text-emerald-950 text-2xl">&times;</button>
       </div>
-      <p class="text-xs text-slate-600 leading-relaxed" data-i18n="batchModalDesc">
-        每行輸入一位同學，格式為「班別, 班號, 姓名」（用逗號分隔）。系統會自動將同學依次排入空座位。
+      <p class="text-xs text-emerald-800/80 leading-relaxed" data-i18n="batchModalDesc">
+        每行輸入一位同學，格式為「班別, 班號, 姓名」（用逗號分隔；如只打「班號, 姓名」會自動填入現時班別）。
       </p>
       <textarea id="batch-input" rows="8" placeholder="2A, 01, CHAN Tai Man&#10;2A, 02, LEE Siu Ming&#10;2A, 03, CHEUNG Mei Lai"
-        class="w-full p-3 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+        class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
       <div class="flex justify-end gap-2">
-        <button onclick="app.closeModal('batch-modal')" class="px-4 py-2 bg-slate-100 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">取消</button>
-        <button onclick="app.importBatchStudents()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold" data-i18n="importBtn">
+        <button onclick="app.closeModal('batch-modal')" class="px-4 py-2 bg-slate-100 text-emerald-900 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">取消</button>
+        <button onclick="app.importBatchStudents()" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-sm font-bold" data-i18n="importBtn">
           開始匯入
         </button>
       </div>
@@ -455,6 +678,8 @@
         appTitle: "老師課堂工具",
         loading: "正在連線至課室系統...",
         langSwitch: "🌐 EN",
+        classLabel: "班別:",
+        miniTimerReturn: "返回",
         loginTitle: "老師課堂管理系統",
         loginSubtitle: "僅限授權老師帳號登入",
         emailLabel: "老師電郵",
@@ -467,12 +692,14 @@
         notTeacherErr: "此系統僅供老師使用，此帳號沒有存取權限。",
         teacherBadge: "老師帳號",
         tabWheel: "🎡 抽籤轉盤",
-        tabSeating: "🪑 座位表紀錄",
-        lockOn: "🔒 投影安全鎖：開",
-        lockOff: "🔓 投影安全鎖：關",
-        lockBlockedToast: "🔒 投影安全鎖已開啟！請先按右上角解鎖再打開座位表。",
-        lockEnabledToast: "已鎖定座位表，上堂投影更安心",
-        lockDisabledToast: "已解鎖座位表",
+        tabTools: "⏱️ 計時 / 分組",
+        tabSeating: "🪑 座位表",
+        tabHw: "📋 追功課",
+        lockOn: "🔒 投影鎖：開",
+        lockOff: "🔓 投影鎖：關",
+        lockBlockedToast: "🔒 投影安全鎖已開啟！座位表同追功課清單已隱藏，請先按右上角解鎖。",
+        lockEnabledToast: "已鎖定座位表與追功課清單，上堂投影更安心",
+        lockDisabledToast: "已解鎖座位表與追功課清單",
         logoutBtn: "登出",
         wheelTitle: "🎡 隨機抽籤轉盤",
         wheelRemovePicked: "抽中後暫時移出",
@@ -482,8 +709,9 @@
         optNo: "班號",
         optName: "姓名",
         wheelNeedOneOpt: "最少要揀選一項顯示內容",
-        wheelEmptyStudents: "請先在「座位表紀錄」匯入學生名單",
-        wheelAllPicked: "所有同學已被抽中，請按「重置名單」",
+        wheelEmptyStudents: "請先在「座位表」匯入此班學生名單",
+        wheelAllPicked: "在場同學已全部抽中，請按「重置名單」",
+        wheelAbsentExcluded: "已自動略過 {n} 位缺席同學",
         spinBtn: "🎯 開始抽籤！",
         winnerHeading: "今次抽中同學",
         winnerEmpty: "按下「開始抽籤」抽出幸運同學",
@@ -493,13 +721,48 @@
         wheelQuickNote: "轉盤抽答紀錄",
         wheelResetToast: "轉盤名單已重置",
         scoreSavedToast: "✅ 已成功記錄！",
+        timerTitle: "⏱️ 課堂倒數計時器",
+        timerReady: "待命中",
+        timerRunning: "計時中",
+        timerPaused: "已暫停",
+        timerFinished: "夠鐘！",
+        timerPresets: "快捷時間：",
+        timerCustom: "自訂：",
+        timerMinUnit: "分",
+        timerSecUnit: "秒",
+        timerSetBtn: "設定",
+        timerStart: "▶️ 開始計時",
+        timerPause: "⏸️ 暫停",
+        timerResume: "▶️ 繼續計時",
+        timerReset: "↺ 重置",
+        timerTimesUpToast: "⏰ 時間到！",
+        groupTitle: "👥 一鍵隨機分組 ＋ 小組加分",
+        groupExcludeAbsent: "自動排除今日缺席同學",
+        groupModeSize: "按「每組人數」分組",
+        groupModeCount: "按「總組數」分組",
+        generateGroupsBtn: "🎲 立即隨機分組",
+        clearGroupsBtn: "清除",
+        groupEmptyHint: "揀選分組人數後按「立即隨機分組」，完成後可直接投影並幫成組加分。",
+        groupNoStudentsToast: "此班未有可分組嘅在場學生",
+        groupCardName: "第 {n} 組",
+        groupBonusBtn: "👍 全組 +1",
+        groupBonusLog: "小組加分 (第 {n} 組)",
+        groupBonusToast: "🎉 已幫第 {n} 組全體同學加 好表現 +1！",
         seatingTitle: "🪑 課室座位表",
-        modeScore: "✏️ 上堂記分模式",
-        modeEdit: "🛠️ 後台管理 / 調位模式",
+        modeScore: "✏️ 記分模式",
+        modeAttendance: "📋 今日點名",
+        modeEdit: "🛠️ 後台調位",
         flipView: "切換視角",
         boardTopLabel: "講台在上方",
         boardBottomLabel: "講台在下方",
-        exportCsv: "📥 匯出 Excel 紀錄",
+        exportCsv: "📥 匯出 Excel",
+        attendanceTip: "點擊學生座位即可切換「今日缺席／出席」。缺席同學會自動從抽籤轉盤同隨機分組中排除，翌日自動重置。",
+        attendanceSummaryText: "今日出席 {p} / {total}（缺席 {a}）",
+        markAllPresentBtn: "全部設為出席",
+        absentTag: "今日缺席",
+        markAbsentBtn: "標記缺席",
+        markPresentBtn: "改回出席",
+        allPresentToast: "✅ 已將全班設為出席",
         editTip: "💡 拖拉座位可互換位置（iPad 點兩格互換）；點學生右上角「✏️」可改名、換相及修正錯誤紀錄。",
         gridCols: "直行數(列):",
         gridRows: "橫排數(行):",
@@ -511,19 +774,45 @@
         seatSelectedToast: "已選取學生，請點擊目標座位完成移動／互換",
         seatUpdatedToast: "✅ 座位已更新",
         gridUpdatedToast: "已更新座位表格數",
+        hwTrackerTitle: "📋 追功課清單",
+        hwTrackerSubtitle: "一頁過查看全班欠交功課，同學補交後直接按「✅ 已補交」劃走（仍會保留歷史紀錄）",
+        hwTabPending: "⏳ 未補交",
+        hwTabResolved: "✅ 已補交",
+        hwTabAll: "全部",
+        hwAllTopics: "全部功課",
+        hwUnnamed: "（未註明功課）",
+        hwEmptyPending: "🎉 太好了！此班暫時沒有未補交功課。",
+        hwEmptyAll: "暫無相關欠交功課紀錄。",
+        hwMarkResolvedBtn: "✅ 已補交",
+        hwUndoResolvedBtn: "↩️ 改回未交",
+        hwResolvedBadge: "已補交",
+        hwPendingBadge: "未補交",
+        hwResolvedToast: "✅ 已標記為「已補交」",
+        hwReopenedToast: "已改回「未補交」狀態",
+        classModalTitle: "⚙️ 管理任教班別",
+        newClassPlaceholder: "輸入新班別名稱（如 2B、2C、3A）",
+        addClassBtn: "➕ 新增",
+        classModalHint: "提示：每班擁有獨立座位表與紀錄，隨時可於頁頂選單切換。",
+        classCurrentBadge: "使用中",
+        renameBtn: "改名",
+        renamePrompt: "請輸入新嘅班別名稱：",
+        confirmDeleteClass: "確定要從選單移除「{name}」嗎？（建議先匯出 Excel 備份）",
+        cannotDeleteLastClass: "最少需要保留一個班別",
+        classAddedToast: "✅ 已新增班別：{name}",
+        classSwitchedToast: "已切換至 {name}",
         deleteBtn: "刪除",
         goodLabel: "👍 好表現",
         badLabel: "👎 壞表現",
         hwLabel: "📝 欠交功課",
         addGoodBtn: "+1 好表現",
         addBadBtn: "+1 壞表現",
-        behaviorNoteLabel: "表現備註（選填，按上方按鈕時一併記錄）",
+        behaviorNoteLabel: "表現備註（選填，可點快捷標籤）",
         behaviorNotePlaceholder: "例如：主動舉手答問題 / 上堂傾偈",
         hwCountPrefix: "累計：",
         hwPlaceholder: "填寫欠交功課內容（如：WS 3、默書改正）",
         addHwBtn: "+1 記錄欠交功課",
         recentLogsTitle: "最近紀錄",
-        editLogsHint: "如入錯資料，請於「後台管理」修改",
+        editLogsHint: "如入錯資料，請於「後台調位」修改",
         noLogsYet: "暫無操行／功課紀錄",
         editStudentTitle: "🛠️ 後台編輯學生資料與紀錄",
         uploadPhotoBtn: "📷 更換相片",
@@ -539,11 +828,11 @@
         studentSavedToast: "✅ 學生資料與紀錄已更新",
         studentDeletedToast: "已刪除學生",
         batchModalTitle: "➕ 批量匯入全班學生",
-        batchModalDesc: "每行輸入一位同學，格式為「班別, 班號, 姓名」（用逗號分隔）。系統會自動將同學依次排入空座位。",
+        batchModalDesc: "每行輸入一位同學，格式為「班別, 班號, 姓名」（用逗號分隔；如只打「班號, 姓名」會自動填入現時班別）。",
         importBtn: "開始匯入",
         importSuccessToast: "✅ 成功匯入學生名單！",
         noCsvToast: "暫無學生資料可匯出",
-        csvHeaders: ["班別", "班號", "姓名", "好表現", "壞表現", "欠交功課次數", "欠交功課內容清單", "最新備註"],
+        csvHeaders: ["班別", "班號", "姓名", "今日缺席", "好表現", "壞表現", "欠交總次數", "未補交功課清單", "全部欠交紀錄", "最新備註"],
         permDeniedToast: "⚠️ 資料庫權限不足！請檢查 Firebase 安全規則是否已填入正確老師電郵並發佈。"
       },
       en: {
@@ -551,6 +840,8 @@
         appTitle: "Teacher Classroom Hub",
         loading: "Connecting to classroom system...",
         langSwitch: "🌐 中文",
+        classLabel: "Class:",
+        miniTimerReturn: "Open",
         loginTitle: "Teacher Classroom Hub",
         loginSubtitle: "Authorized Teacher Accounts Only",
         emailLabel: "Teacher Email",
@@ -562,13 +853,15 @@
         loginErr: "Invalid email or password. Please try again.",
         notTeacherErr: "Access denied. This system is restricted to teachers only.",
         teacherBadge: "Teacher",
-        tabWheel: "🎡 Name Wheel",
-        tabSeating: "🪑 Seating & Records",
-        lockOn: "🔒 Projector Lock: ON",
-        lockOff: "🔓 Projector Lock: OFF",
-        lockBlockedToast: "🔒 Projector Lock is ON. Unlock at the top-right to open Seating Chart.",
-        lockEnabledToast: "Seating chart locked for safe projection",
-        lockDisabledToast: "Seating chart unlocked",
+        tabWheel: "🎡 Wheel",
+        tabTools: "⏱️ Timer & Groups",
+        tabSeating: "🪑 Seating",
+        tabHw: "📋 HW Tracker",
+        lockOn: "🔒 Lock: ON",
+        lockOff: "🔓 Lock: OFF",
+        lockBlockedToast: "🔒 Projector Lock is ON. Unlock at top-right to view Seating or HW Tracker.",
+        lockEnabledToast: "Seating & HW Tracker locked for safe projection",
+        lockDisabledToast: "Seating & HW Tracker unlocked",
         logoutBtn: "Log Out",
         wheelTitle: "🎡 Random Picker Wheel",
         wheelRemovePicked: "Remove picked student",
@@ -578,8 +871,9 @@
         optNo: "Class No.",
         optName: "Name",
         wheelNeedOneOpt: "Please select at least one display option",
-        wheelEmptyStudents: "Please import students in Seating & Records first",
-        wheelAllPicked: "All students picked! Click Reset Pool",
+        wheelEmptyStudents: "Please import students in Seating first",
+        wheelAllPicked: "All present students picked! Click Reset Pool",
+        wheelAbsentExcluded: "{n} absent student(s) auto-excluded",
         spinBtn: "🎯 Spin the Wheel!",
         winnerHeading: "Selected Student",
         winnerEmpty: "Click 'Spin the Wheel' to pick a student",
@@ -589,13 +883,48 @@
         wheelQuickNote: "Picked by wheel",
         wheelResetToast: "Wheel list reset",
         scoreSavedToast: "✅ Record saved!",
+        timerTitle: "⏱️ Classroom Countdown Timer",
+        timerReady: "Ready",
+        timerRunning: "Running",
+        timerPaused: "Paused",
+        timerFinished: "Time's Up!",
+        timerPresets: "Quick Presets:",
+        timerCustom: "Custom:",
+        timerMinUnit: "m",
+        timerSecUnit: "s",
+        timerSetBtn: "Set",
+        timerStart: "▶️ Start",
+        timerPause: "⏸️ Pause",
+        timerResume: "▶️ Resume",
+        timerReset: "↺ Reset",
+        timerTimesUpToast: "⏰ Time is up!",
+        groupTitle: "👥 Random Grouping & Group Bonus",
+        groupExcludeAbsent: "Auto-exclude today's absent students",
+        groupModeSize: "By students per group",
+        groupModeCount: "By number of groups",
+        generateGroupsBtn: "🎲 Generate Groups",
+        clearGroupsBtn: "Clear",
+        groupEmptyHint: "Select group size and click 'Generate Groups' to project teams and award group points.",
+        groupNoStudentsToast: "No present students available to group",
+        groupCardName: "Group {n}",
+        groupBonusBtn: "👍 Group +1",
+        groupBonusLog: "Group Bonus (Group {n})",
+        groupBonusToast: "🎉 Awarded +1 Good to all members of Group {n}!",
         seatingTitle: "🪑 Classroom Seating Chart",
-        modeScore: "✏️ Class Recording Mode",
-        modeEdit: "🛠️ Admin / Rearrange Mode",
+        modeScore: "✏️ Scoring",
+        modeAttendance: "📋 Attendance",
+        modeEdit: "🛠️ Admin / Edit",
         flipView: "Flip View",
         boardTopLabel: "Board at Top",
         boardBottomLabel: "Board at Bottom",
         exportCsv: "📥 Export CSV",
+        attendanceTip: "Click any seat to toggle Absent/Present for today. Absent students are auto-excluded from Wheel & Grouping and reset tomorrow.",
+        attendanceSummaryText: "Present {p} / {total} (Absent {a})",
+        markAllPresentBtn: "Mark All Present",
+        absentTag: "Absent",
+        markAbsentBtn: "Mark Absent",
+        markPresentBtn: "Mark Present",
+        allPresentToast: "✅ All students marked present",
         editTip: "💡 Drag seats to swap (or tap two seats on iPad). Click '✏️' on any card to edit info, photo, or fix records.",
         gridCols: "Columns:",
         gridRows: "Rows:",
@@ -607,13 +936,39 @@
         seatSelectedToast: "Student selected. Tap target seat to move or swap.",
         seatUpdatedToast: "✅ Seat updated",
         gridUpdatedToast: "Grid size updated",
+        hwTrackerTitle: "📋 Missing Homework Tracker",
+        hwTrackerSubtitle: "View all missing homework at a glance. Click '✅ Submitted' to clear pending items while keeping history.",
+        hwTabPending: "⏳ Pending",
+        hwTabResolved: "✅ Submitted",
+        hwTabAll: "All",
+        hwAllTopics: "All Homework",
+        hwUnnamed: "(Unspecified HW)",
+        hwEmptyPending: "🎉 Great! No pending missing homework in this class.",
+        hwEmptyAll: "No matching homework records found.",
+        hwMarkResolvedBtn: "✅ Submitted",
+        hwUndoResolvedBtn: "↩️ Undo",
+        hwResolvedBadge: "Submitted",
+        hwPendingBadge: "Pending",
+        hwResolvedToast: "✅ Marked as submitted",
+        hwReopenedToast: "Reverted to pending",
+        classModalTitle: "⚙️ Manage Classes",
+        newClassPlaceholder: "New class name (e.g. 2B, 2C, 3A)",
+        addClassBtn: "➕ Add",
+        classModalHint: "Tip: Each class has its own seating chart, photos, and records.",
+        classCurrentBadge: "Active",
+        renameBtn: "Rename",
+        renamePrompt: "Enter new class name:",
+        confirmDeleteClass: "Remove '{name}' from your class list? (Export CSV first if needed)",
+        cannotDeleteLastClass: "You must keep at least one class",
+        classAddedToast: "✅ Class added: {name}",
+        classSwitchedToast: "Switched to {name}",
         deleteBtn: "Delete",
         goodLabel: "👍 Good",
         badLabel: "👎 Bad",
         hwLabel: "📝 Missing HW",
         addGoodBtn: "+1 Good",
         addBadBtn: "+1 Bad",
-        behaviorNoteLabel: "Behavior Remark (optional)",
+        behaviorNoteLabel: "Behavior Remark (optional, tap quick tags)",
         behaviorNotePlaceholder: "e.g. Answered actively / Talking in class",
         hwCountPrefix: "Total: ",
         hwPlaceholder: "Enter missing homework details (e.g. WS 3, Dictation)",
@@ -635,16 +990,18 @@
         studentSavedToast: "✅ Student profile & records updated",
         studentDeletedToast: "Student deleted",
         batchModalTitle: "➕ Batch Import Students",
-        batchModalDesc: "Enter one student per line in the format: Class, Class No., Name (separated by commas).",
+        batchModalDesc: "One student per line: Class, Class No., Name (comma-separated; if only 'No., Name', current class is used).",
         importBtn: "Import",
         importSuccessToast: "✅ Students imported!",
         noCsvToast: "No student data to export",
-        csvHeaders: ["Class", "Class No.", "Name", "Good", "Bad", "Missing HW Count", "Missing HW Details", "Latest Note"],
+        csvHeaders: ["Class", "Class No.", "Name", "Absent Today", "Good", "Bad", "Total Missing HW", "Pending HW", "All Missing HW", "Latest Note"],
         permDeniedToast: "⚠️ Permission denied! Check Firebase Rules for teacher emails."
       }
     };
 
-    // Global State
+    const DEFAULT_HW_TAGS = ["WS 1", "WS 2", "Dictation Corr.", "Reading Ex."];
+    const DEFAULT_BEHAVIOR_TAGS = ["主動答問題", "幫助同學", "上堂傾偈", "未帶課本"];
+
     const savedWheelOpts = (() => {
       try { return JSON.parse(localStorage.getItem("s2a_wheel_opts") || "null"); } catch (_) { return null; }
     })();
@@ -652,6 +1009,8 @@
     const state = {
       lang: localStorage.getItem("s2a_lang") || "zh",
       user: null,
+      classes: [{ id: "s2a", name: "2A" }],
+      currentClassId: localStorage.getItem("s2a_active_class") || "s2a",
       currentTab: "wheel",
       projectorLocked: false,
       seatingMode: "score",
@@ -663,6 +1022,11 @@
       activeStudentId: null,
       editingPhotoBase64: null,
       editingLogs: [],
+      hwTags: [...DEFAULT_HW_TAGS],
+      behaviorTags: [...DEFAULT_BEHAVIOR_TAGS],
+      hwFilterStatus: "pending",
+      hwFilterTopic: "",
+      hwTopicsCache: [],
       wheelShowClass: savedWheelOpts ? savedWheelOpts.c : true,
       wheelShowNo: savedWheelOpts ? savedWheelOpts.no : true,
       wheelShowName: savedWheelOpts ? savedWheelOpts.name : true,
@@ -670,20 +1034,74 @@
       wheelHistory: [],
       wheelAngle: 0,
       isSpinning: false,
-      unsubs: []
+      timerTotalSec: 180,
+      timerRemainSec: 180,
+      timerRunning: false,
+      timerInterval: null,
+      groups: [],
+      globalUnsubs: [],
+      classUnsubs: []
     };
 
+    // Softened, pleasant wheel colors that pair nicely with light green theme
     const WHEEL_COLORS = [
-      "#6366f1", "#ec4899", "#10b981", "#f59e0b", "#3b82f6",
-      "#8b5cf6", "#14b8a6", "#f97316", "#06b6d4", "#ef4444"
+      "#2a9d8f", "#e76f51", "#457b9d", "#e9c46a", "#52b788",
+      "#8e7dbe", "#f4a261", "#3a86a8", "#d9777f", "#40916c"
+    ];
+    const GROUP_COLORS = [
+      "border-teal-300 bg-teal-50/60",
+      "border-emerald-300 bg-emerald-50/60",
+      "border-amber-300 bg-amber-50/60",
+      "border-rose-300 bg-rose-50/60",
+      "border-sky-300 bg-sky-50/60",
+      "border-purple-300 bg-purple-50/60",
+      "border-lime-300 bg-lime-50/60",
+      "border-orange-300 bg-orange-50/60"
     ];
 
-    function t(key) {
-      return (I18N[state.lang] && I18N[state.lang][key]) || I18N.zh[key] || key;
+    function t(key, vars = {}) {
+      let str = (I18N[state.lang] && I18N[state.lang][key]) || I18N.zh[key] || key;
+      Object.entries(vars).forEach(([k, v]) => { str = str.replaceAll(`{${k}}`, v); });
+      return str;
     }
 
     function escapeHtml(str = "") {
       return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+    }
+
+    function localTodayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    function nowTimeStr() {
+      const now = new Date();
+      return `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function isAbsentToday(student) {
+      return student && student.absentDate === localTodayStr();
+    }
+
+    function isHwLog(log) {
+      return log && (log.type === "missingHw" || (log.label || "").includes("欠交"));
+    }
+
+    function getPendingHwCount(student) {
+      return (student.logs || []).filter(l => isHwLog(l) && !l.resolved).length;
+    }
+
+    function getCurrentClassName() {
+      const found = state.classes.find(c => c.id === state.currentClassId);
+      return found ? found.name : "2A";
+    }
+
+    function studentDocRef(studentId) {
+      return doc(db, "teacher_data", state.currentClassId, "students", studentId);
+    }
+
+    function settingsDocRef() {
+      return doc(db, "teacher_data", `${state.currentClassId}_settings`);
     }
 
     function showToast(msg, duration = 2600) {
@@ -703,7 +1121,7 @@
         gain.connect(ctx.destination);
         osc.type = "triangle";
         osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
         osc.start();
         osc.stop(ctx.currentTime + duration);
@@ -734,8 +1152,12 @@
       }
 
       updateProjectorLockBtn();
+      updateTimerUI();
       drawWheel();
       renderSeating();
+      renderHwTracker();
+      renderGroups();
+      renderClassManagerList();
       if (!document.getElementById("score-modal").classList.contains("hidden") && state.activeStudentId) {
         refreshScoreModal();
       }
@@ -788,8 +1210,7 @@
     });
 
     onAuthStateChanged(auth, async (user) => {
-      state.unsubs.forEach(u => u());
-      state.unsubs = [];
+      clearAllListeners();
       document.getElementById("loading-screen").classList.add("hidden");
 
       if (!user) {
@@ -813,54 +1234,191 @@
       document.getElementById("main-app").classList.remove("hidden");
 
       applyLanguage();
-      subscribeData();
+      subscribeGlobalData();
+      subscribeClassData(state.currentClassId);
       switchTab("wheel");
     });
 
+    function clearAllListeners() {
+      state.globalUnsubs.forEach(u => u());
+      state.globalUnsubs = [];
+      state.classUnsubs.forEach(u => u());
+      state.classUnsubs = [];
+    }
+
     // ==================== FIRESTORE SUBSCRIPTIONS ====================
-    function subscribeData() {
-      state.unsubs.push(onSnapshot(doc(db, "teacher_data", "s2a_settings"), (snap) => {
+    function subscribeGlobalData() {
+      state.globalUnsubs.push(onSnapshot(doc(db, "teacher_data", "classes_meta"), (snap) => {
+        if (snap.exists() && Array.isArray(snap.data().list) && snap.data().list.length > 0) {
+          state.classes = snap.data().list;
+        } else {
+          state.classes = [{ id: "s2a", name: "2A" }];
+        }
+        if (!state.classes.some(c => c.id === state.currentClassId)) {
+          state.currentClassId = state.classes[0].id;
+          localStorage.setItem("s2a_active_class", state.currentClassId);
+          subscribeClassData(state.currentClassId);
+        }
+        renderClassSelector();
+        renderClassManagerList();
+      }, (err) => {
+        if (err.code === "permission-denied") showToast(t("permDeniedToast"), 6000);
+      }));
+
+      state.globalUnsubs.push(onSnapshot(doc(db, "teacher_data", "quick_tags"), (snap) => {
+        if (snap.exists()) {
+          const d = snap.data();
+          if (Array.isArray(d.hwTags)) state.hwTags = d.hwTags;
+          if (Array.isArray(d.behaviorTags)) state.behaviorTags = d.behaviorTags;
+        }
+        renderQuickTags();
+      }));
+    }
+
+    function subscribeClassData(classId) {
+      state.classUnsubs.forEach(u => u());
+      state.classUnsubs = [];
+
+      state.students = [];
+      state.selectedSeat = null;
+      state.wheelRemovedIds.clear();
+      state.wheelHistory = [];
+      state.groups = [];
+      state.hwFilterTopic = "";
+
+      const wb = document.getElementById("wheel-winner-box");
+      if (wb) wb.innerHTML = `<p class="text-emerald-700/60 text-sm">${escapeHtml(t("winnerEmpty"))}</p>`;
+      const wh = document.getElementById("wheel-history");
+      if (wh) wh.innerHTML = `<span>${escapeHtml(t("noRecords"))}</span>`;
+
+      state.classUnsubs.push(onSnapshot(doc(db, "teacher_data", `${classId}_settings`), (snap) => {
         if (snap.exists()) {
           const d = snap.data();
           state.gridRows = d.rows || 6;
           state.gridCols = d.cols || 6;
           state.flipView = !!d.flipView;
-          document.getElementById("grid-rows").value = state.gridRows;
-          document.getElementById("grid-cols").value = state.gridCols;
+        } else {
+          state.gridRows = 6;
+          state.gridCols = 6;
+          state.flipView = false;
         }
+        document.getElementById("grid-rows").value = state.gridRows;
+        document.getElementById("grid-cols").value = state.gridCols;
         renderSeating();
-      }, (err) => {
-        if (err.code === "permission-denied") showToast(t("permDeniedToast"), 6000);
       }));
 
-      state.unsubs.push(onSnapshot(collection(db, "teacher_data", "s2a", "students"), (snap) => {
+      state.classUnsubs.push(onSnapshot(collection(db, "teacher_data", classId, "students"), (snap) => {
         state.students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         state.students.sort((a, b) => (a.classNo || "").localeCompare(b.classNo || "", undefined, { numeric: true }));
         renderSeating();
         drawWheel();
+        renderHwTracker();
+        renderGroups();
         if (state.activeStudentId && !document.getElementById("score-modal").classList.contains("hidden")) {
           refreshScoreModal();
         }
       }));
     }
 
-    // ==================== NAVIGATION ====================
+    // ==================== MULTI-CLASS MANAGEMENT ====================
+    function renderClassSelector() {
+      const sel = document.getElementById("class-selector");
+      if (!sel) return;
+      sel.innerHTML = state.classes.map(c =>
+        `<option value="${escapeHtml(c.id)}" ${c.id === state.currentClassId ? "selected" : ""}>${escapeHtml(c.name)}</option>`
+      ).join("");
+    }
+
+    function selectClass(classId) {
+      if (classId === state.currentClassId) return;
+      state.currentClassId = classId;
+      localStorage.setItem("s2a_active_class", classId);
+      subscribeClassData(classId);
+      renderClassManagerList();
+      showToast(t("classSwitchedToast", { name: getCurrentClassName() }));
+    }
+
+    function openClassManager() {
+      document.getElementById("new-class-name").value = "";
+      renderClassManagerList();
+      document.getElementById("class-modal").classList.remove("hidden");
+    }
+
+    function renderClassManagerList() {
+      const container = document.getElementById("class-manager-list");
+      if (!container) return;
+      container.innerHTML = state.classes.map((c, idx) => `
+        <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border ${c.id === state.currentClassId ? "border-teal-400 bg-emerald-100/70" : "border-slate-200 bg-slate-50"}">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="font-bold text-sm text-emerald-950 truncate">${escapeHtml(c.name)}</span>
+            ${c.id === state.currentClassId ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-teal-700 text-white rounded-full">${escapeHtml(t("classCurrentBadge"))}</span>` : ""}
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="app.renameClass(${idx})" class="px-2.5 py-1 bg-white border border-slate-200 hover:bg-emerald-50 rounded-lg text-xs font-semibold text-emerald-900">
+              ${escapeHtml(t("renameBtn"))}
+            </button>
+            ${state.classes.length > 1 ? `
+              <button onclick="app.removeClass(${idx})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 rounded-lg text-xs font-semibold text-rose-600">
+                ${escapeHtml(t("deleteBtn"))}
+              </button>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function addNewClass() {
+      const input = document.getElementById("new-class-name");
+      const name = input.value.trim();
+      if (!name) return;
+      const newId = "c_" + Date.now().toString(36);
+      const updated = [...state.classes, { id: newId, name }];
+      await setDoc(doc(db, "teacher_data", "classes_meta"), { list: updated });
+      input.value = "";
+      state.currentClassId = newId;
+      localStorage.setItem("s2a_active_class", newId);
+      subscribeClassData(newId);
+      showToast(t("classAddedToast", { name }));
+    }
+
+    async function renameClass(idx) {
+      const target = state.classes[idx];
+      if (!target) return;
+      const newName = prompt(t("renamePrompt"), target.name);
+      if (!newName || !newName.trim()) return;
+      const updated = state.classes.map((c, i) => i === idx ? { ...c, name: newName.trim() } : c);
+      await setDoc(doc(db, "teacher_data", "classes_meta"), { list: updated });
+    }
+
+    async function removeClass(idx) {
+      if (state.classes.length <= 1) {
+        showToast(t("cannotDeleteLastClass"));
+        return;
+      }
+      const target = state.classes[idx];
+      if (!confirm(t("confirmDeleteClass", { name: target.name }))) return;
+      const updated = state.classes.filter((_, i) => i !== idx);
+      await setDoc(doc(db, "teacher_data", "classes_meta"), { list: updated });
+    }
+
+    // ==================== NAVIGATION & PROJECTOR LOCK ====================
     function switchTab(tab) {
-      if (tab === "seating" && state.projectorLocked) {
+      if ((tab === "seating" || tab === "hw") && state.projectorLocked) {
         showToast(t("lockBlockedToast"));
         return;
       }
       state.currentTab = tab;
-      ["wheel", "seating"].forEach(tName => {
+      ["wheel", "tools", "seating", "hw"].forEach(tName => {
         document.getElementById(`page-${tName}`).classList.toggle("hidden", tName !== tab);
         const btn = document.getElementById(`tab-btn-${tName}`);
         if (btn) {
-          btn.className = btn.className.replace(/bg-white text-indigo-700 shadow-sm|text-slate-600 hover:text-slate-900/g, "");
-          btn.classList.add(...(tName === tab ? ["bg-white", "text-indigo-700", "shadow-sm"] : ["text-slate-600", "hover:text-slate-900"]));
+          btn.className = btn.className.replace(/bg-white text-teal-800 shadow-sm|text-emerald-900\/70 hover:text-emerald-950/g, "");
+          btn.classList.add(...(tName === tab ? ["bg-white", "text-teal-800", "shadow-sm"] : ["text-emerald-900/70", "hover:text-emerald-950"]));
         }
       });
+      updateMiniTimerVisibility();
       if (tab === "wheel") drawWheel();
       if (tab === "seating") renderSeating();
+      if (tab === "hw") renderHwTracker();
     }
 
     function updateProjectorLockBtn() {
@@ -868,10 +1426,10 @@
       if (!btn) return;
       if (state.projectorLocked) {
         btn.textContent = t("lockOn");
-        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold border bg-rose-50 text-rose-700 border-rose-300";
+        btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold border bg-rose-50 text-rose-700 border-rose-300";
       } else {
         btn.textContent = t("lockOff");
-        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white text-slate-600 border-slate-300";
+        btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold border bg-white text-emerald-900 border-emerald-300";
       }
     }
 
@@ -879,7 +1437,7 @@
       state.projectorLocked = !state.projectorLocked;
       updateProjectorLockBtn();
       if (state.projectorLocked) {
-        if (state.currentTab === "seating") switchTab("wheel");
+        if (state.currentTab === "seating" || state.currentTab === "hw") switchTab("wheel");
         showToast(t("lockEnabledToast"));
       } else {
         showToast(t("lockDisabledToast"));
@@ -919,13 +1477,24 @@
     }
 
     function getWheelPool() {
-      return state.students.filter(s => !state.wheelRemovedIds.has(s.id));
+      return state.students.filter(s => !isAbsentToday(s) && !state.wheelRemovedIds.has(s.id));
     }
 
     function drawWheel() {
       const canvas = document.getElementById("wheel-canvas");
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
+      const absentCount = state.students.filter(isAbsentToday).length;
+      const absentPill = document.getElementById("wheel-absent-pill");
+      if (absentPill) {
+        if (absentCount > 0) {
+          absentPill.textContent = t("wheelAbsentExcluded", { n: absentCount });
+          absentPill.classList.remove("hidden");
+        } else {
+          absentPill.classList.add("hidden");
+        }
+      }
+
       const pool = getWheelPool();
       document.getElementById("wheel-count").textContent = pool.length;
 
@@ -937,9 +1506,9 @@
       if (pool.length === 0) {
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.fillStyle = "#e2e8f0";
+        ctx.fillStyle = "#d9eadf";
         ctx.fill();
-        ctx.fillStyle = "#64748b";
+        ctx.fillStyle = "#2f5d47";
         ctx.font = "bold 16px sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(state.students.length === 0 ? t("wheelEmptyStudents") : t("wheelAllPicked"), cx, cy);
@@ -960,7 +1529,7 @@
         ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
         ctx.fill();
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle = "#f6fbf8";
         ctx.stroke();
 
         ctx.save();
@@ -977,10 +1546,10 @@
 
       ctx.beginPath();
       ctx.arc(cx, cy, 24, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#f6fbf8";
       ctx.fill();
       ctx.lineWidth = 4;
-      ctx.strokeStyle = "#4f46e5";
+      ctx.strokeStyle = "#0f766e";
       ctx.stroke();
     }
 
@@ -1027,7 +1596,7 @@
           }
           state.wheelHistory.unshift(`${winner.className || ""} ${winner.classNo || ""} ${winner.name || ""}`.trim());
           document.getElementById("wheel-history").innerHTML = state.wheelHistory
-            .map(h => `<span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg font-medium">${escapeHtml(h)}</span>`)
+            .map(h => `<span class="px-2 py-1 bg-emerald-100/80 text-teal-900 rounded-lg font-medium">${escapeHtml(h)}</span>`)
             .join("");
         }
       }
@@ -1037,15 +1606,15 @@
     function showWheelWinner(student) {
       const box = document.getElementById("wheel-winner-box");
       const avatar = student.photo
-        ? `<img src="${student.photo}" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-indigo-200 shadow mb-3" />`
-        : `<div class="w-24 h-24 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-3xl font-bold mx-auto mb-3">${escapeHtml((student.name || "?").slice(0, 1))}</div>`;
+        ? `<img src="${student.photo}" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-emerald-200 shadow mb-3" />`
+        : `<div class="w-24 h-24 rounded-full bg-emerald-100 text-teal-800 flex items-center justify-center text-3xl font-bold mx-auto mb-3">${escapeHtml((student.name || "?").slice(0, 1))}</div>`;
 
       box.innerHTML = `
         <div class="animate-pop">
           ${avatar}
-          <div class="text-sm font-semibold text-indigo-600">${escapeHtml(student.className || "")} (${escapeHtml(student.classNo || "")})</div>
-          <div class="text-2xl font-extrabold text-slate-800 mt-1 mb-4 break-words">${escapeHtml(student.name)}</div>
-          <div class="text-xs text-slate-400 mb-2">${escapeHtml(t("wheelQuickTitle"))}</div>
+          <div class="text-sm font-semibold text-teal-700">${escapeHtml(student.className || "")} (${escapeHtml(student.classNo || "")})</div>
+          <div class="text-2xl font-extrabold text-emerald-950 mt-1 mb-4 break-words">${escapeHtml(student.name)}</div>
+          <div class="text-xs text-emerald-800/60 mb-2">${escapeHtml(t("wheelQuickTitle"))}</div>
           <div class="grid grid-cols-3 gap-2">
             <button onclick="app.quickScoreFromWheel('${student.id}', 'good')" class="py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">${escapeHtml(t("addGoodBtn"))}</button>
             <button onclick="app.quickScoreFromWheel('${student.id}', 'bad')" class="py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold">${escapeHtml(t("addBadBtn"))}</button>
@@ -1067,7 +1636,223 @@
       showToast(t("wheelResetToast"));
     }
 
-    // ==================== PAGE 2: SEATING CHART ====================
+    // ==================== PAGE 2: CLASSROOM TIMER ====================
+    function formatMMSS(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function updateMiniTimerVisibility() {
+      const mini = document.getElementById("mini-timer");
+      if (!mini) return;
+      const show = state.timerRunning && state.currentTab !== "tools";
+      mini.classList.toggle("hidden", !show);
+      if (show) document.getElementById("mini-timer-display").textContent = formatMMSS(state.timerRemainSec);
+    }
+
+    function updateTimerUI() {
+      const display = document.getElementById("timer-display");
+      const progress = document.getElementById("timer-progress");
+      const startBtn = document.getElementById("timer-start-btn");
+      const statusBadge = document.getElementById("timer-status-badge");
+      const box = document.getElementById("timer-display-box");
+      if (!display) return;
+
+      display.textContent = formatMMSS(state.timerRemainSec);
+      const pct = state.timerTotalSec > 0 ? (state.timerRemainSec / state.timerTotalSec) * 100 : 0;
+      progress.style.width = `${pct}%`;
+
+      if (state.timerRemainSec === 0 && state.timerTotalSec > 0) {
+        box.classList.add("bg-rose-700", "timer-done-flash");
+        box.classList.remove("bg-emerald-950");
+        statusBadge.textContent = t("timerFinished");
+        statusBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700";
+        startBtn.textContent = t("timerStart");
+      } else {
+        box.classList.remove("bg-rose-700", "timer-done-flash");
+        box.classList.add("bg-emerald-950");
+        if (state.timerRunning) {
+          statusBadge.textContent = t("timerRunning");
+          statusBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700";
+          startBtn.textContent = t("timerPause");
+        } else if (state.timerRemainSec < state.timerTotalSec) {
+          statusBadge.textContent = t("timerPaused");
+          statusBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700";
+          startBtn.textContent = t("timerResume");
+        } else {
+          statusBadge.textContent = t("timerReady");
+          statusBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-emerald-800";
+          startBtn.textContent = t("timerStart");
+        }
+      }
+      updateMiniTimerVisibility();
+    }
+
+    function setTimerPreset(seconds) {
+      stopTimerInterval();
+      state.timerTotalSec = seconds;
+      state.timerRemainSec = seconds;
+      document.getElementById("timer-custom-min").value = Math.floor(seconds / 60);
+      document.getElementById("timer-custom-sec").value = seconds % 60;
+      updateTimerUI();
+    }
+
+    function applyCustomTimer() {
+      const m = Math.max(0, Math.min(99, parseInt(document.getElementById("timer-custom-min").value) || 0));
+      const s = Math.max(0, Math.min(59, parseInt(document.getElementById("timer-custom-sec").value) || 0));
+      const total = m * 60 + s;
+      if (total <= 0) return;
+      setTimerPreset(total);
+    }
+
+    function stopTimerInterval() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+      state.timerRunning = false;
+    }
+
+    function toggleTimer() {
+      if (state.timerRunning) {
+        stopTimerInterval();
+        updateTimerUI();
+        return;
+      }
+      if (state.timerRemainSec <= 0) {
+        state.timerRemainSec = state.timerTotalSec;
+      }
+      state.timerRunning = true;
+      updateTimerUI();
+      state.timerInterval = setInterval(() => {
+        state.timerRemainSec = Math.max(0, state.timerRemainSec - 1);
+        updateTimerUI();
+        if (state.timerRemainSec === 0) {
+          stopTimerInterval();
+          updateTimerUI();
+          playSound(880, 0.25);
+          setTimeout(() => playSound(880, 0.25), 320);
+          setTimeout(() => playSound(1046, 0.45), 640);
+          showToast(t("timerTimesUpToast"), 4500);
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      stopTimerInterval();
+      state.timerRemainSec = state.timerTotalSec;
+      updateTimerUI();
+    }
+
+    // ==================== PAGE 2: RANDOM GROUPING & GROUP BONUS ====================
+    function generateGroups() {
+      const excludeAbsent = document.getElementById("group-exclude-absent").checked;
+      const mode = document.getElementById("group-mode").value;
+      const num = Math.max(2, parseInt(document.getElementById("group-num").value) || 4);
+
+      const pool = state.students.filter(s => !excludeAbsent || !isAbsentToday(s));
+      if (pool.length === 0) {
+        showToast(t("groupNoStudentsToast"));
+        return;
+      }
+
+      const shuffled = [...pool];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      const groupCount = mode === "size"
+        ? Math.max(1, Math.ceil(shuffled.length / num))
+        : Math.min(num, shuffled.length);
+
+      const buckets = Array.from({ length: groupCount }, () => ({ memberIds: [], bonus: 0 }));
+      shuffled.forEach((student, idx) => {
+        buckets[idx % groupCount].memberIds.push(student.id);
+      });
+
+      state.groups = buckets;
+      renderGroups();
+    }
+
+    function clearGroups() {
+      state.groups = [];
+      renderGroups();
+    }
+
+    function renderGroups() {
+      const container = document.getElementById("groups-container");
+      if (!container) return;
+
+      if (state.groups.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-12 text-center text-emerald-700/60 text-sm">${escapeHtml(t("groupEmptyHint"))}</div>`;
+        return;
+      }
+
+      const studentById = new Map(state.students.map(s => [s.id, s]));
+      container.innerHTML = state.groups.map((grp, idx) => {
+        const colorCls = GROUP_COLORS[idx % GROUP_COLORS.length];
+        const membersHtml = grp.memberIds.map(id => {
+          const s = studentById.get(id);
+          if (!s) return "";
+          return `
+            <div class="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/80">
+              <span class="text-xs font-extrabold text-teal-700 w-6 shrink-0">#${escapeHtml(s.classNo || "")}</span>
+              <span class="text-sm font-bold text-emerald-950 truncate">${escapeHtml(s.name)}</span>
+            </div>`;
+        }).join("");
+
+        return `
+          <div class="rounded-2xl border-2 ${colorCls} p-4 flex flex-col justify-between gap-3 animate-pop">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold text-emerald-950">${escapeHtml(t("groupCardName", { n: idx + 1 }))}</span>
+                ${grp.bonus > 0 ? `<span class="px-2 py-0.5 bg-emerald-600 text-white text-xs font-extrabold rounded-full">+${grp.bonus}</span>` : ""}
+              </div>
+              <button onclick="app.awardGroupBonus(${idx})"
+                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                ${escapeHtml(t("groupBonusBtn"))}
+              </button>
+            </div>
+            <div class="space-y-1.5">${membersHtml}</div>
+          </div>`;
+      }).join("");
+    }
+
+    async function awardGroupBonus(groupIdx) {
+      const grp = state.groups[groupIdx];
+      if (!grp || grp.memberIds.length === 0) return;
+
+      const batch = writeBatch(db);
+      const timeStr = nowTimeStr();
+      const note = t("groupBonusLog", { n: groupIdx + 1 });
+
+      grp.memberIds.forEach(id => {
+        const s = state.students.find(st => st.id === id);
+        if (!s) return;
+        const newLog = {
+          id: "log_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6),
+          type: "good",
+          label: "👍 好表現 (+1)",
+          note,
+          time: timeStr,
+          by: state.user.email
+        };
+        batch.update(studentDocRef(id), {
+          good: (s.good || 0) + 1,
+          logs: [newLog, ...(s.logs || [])].slice(0, 60)
+        });
+      });
+
+      await batch.commit();
+      grp.bonus = (grp.bonus || 0) + 1;
+      renderGroups();
+      playSound(784, 0.18);
+      showToast(t("groupBonusToast", { n: groupIdx + 1 }));
+    }
+
+    // ==================== PAGE 3: SEATING CHART & ATTENDANCE ====================
     function setSeatingMode(mode) {
       state.seatingMode = mode;
       state.selectedSeat = null;
@@ -1077,14 +1862,35 @@
     async function saveGridSize() {
       const rows = Math.max(2, Math.min(10, parseInt(document.getElementById("grid-rows").value) || 6));
       const cols = Math.max(2, Math.min(10, parseInt(document.getElementById("grid-cols").value) || 6));
-      await setDoc(doc(db, "teacher_data", "s2a_settings"), { rows, cols, flipView: state.flipView }, { merge: true });
+      await setDoc(settingsDocRef(), { rows, cols, flipView: state.flipView }, { merge: true });
       showToast(`${t("gridUpdatedToast")} (${cols} x ${rows})`);
     }
 
     async function toggleFlipView() {
       state.flipView = !state.flipView;
-      await setDoc(doc(db, "teacher_data", "s2a_settings"), { rows: state.gridRows, cols: state.gridCols, flipView: state.flipView }, { merge: true });
+      await setDoc(settingsDocRef(), { rows: state.gridRows, cols: state.gridCols, flipView: state.flipView }, { merge: true });
       renderSeating();
+    }
+
+    async function toggleStudentAbsent(studentId) {
+      const s = state.students.find(st => st.id === studentId);
+      if (!s) return;
+      const nextVal = isAbsentToday(s) ? "" : localTodayStr();
+      await updateDoc(studentDocRef(studentId), { absentDate: nextVal });
+    }
+
+    async function toggleActiveStudentAbsent() {
+      if (!state.activeStudentId) return;
+      await toggleStudentAbsent(state.activeStudentId);
+    }
+
+    async function clearTodayAbsences() {
+      const absentStudents = state.students.filter(isAbsentToday);
+      if (absentStudents.length === 0) return;
+      const batch = writeBatch(db);
+      absentStudents.forEach(s => batch.update(studentDocRef(s.id), { absentDate: "" }));
+      await batch.commit();
+      showToast(t("allPresentToast"));
     }
 
     function renderSeating() {
@@ -1092,12 +1898,20 @@
       if (!grid) return;
 
       document.getElementById("seating-admin-bar").classList.toggle("hidden", state.seatingMode !== "edit");
-      document.getElementById("mode-score-btn").className = state.seatingMode === "score"
-        ? "px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white shadow"
-        : "px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200";
-      document.getElementById("mode-edit-btn").className = state.seatingMode === "edit"
-        ? "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-white shadow"
-        : "px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200";
+      document.getElementById("seating-attendance-bar").classList.toggle("hidden", state.seatingMode !== "attendance");
+
+      const setBtnStyle = (id, active, activeCls) => {
+        const el = document.getElementById(id);
+        if (el) el.className = `px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition ${active ? activeCls : "bg-slate-100 text-emerald-900/75 hover:bg-emerald-200/70"}`;
+      };
+      setBtnStyle("mode-score-btn", state.seatingMode === "score", "bg-teal-700 text-white shadow");
+      setBtnStyle("mode-attendance-btn", state.seatingMode === "attendance", "bg-sky-600 text-white shadow");
+      setBtnStyle("mode-edit-btn", state.seatingMode === "edit", "bg-amber-500 text-white shadow");
+
+      const total = state.students.length;
+      const absentCount = state.students.filter(isAbsentToday).length;
+      const sumEl = document.getElementById("attendance-summary");
+      if (sumEl) sumEl.textContent = t("attendanceSummaryText", { p: total - absentCount, total, a: absentCount });
 
       document.getElementById("board-top").classList.toggle("hidden", state.flipView);
       document.getElementById("board-bottom").classList.toggle("hidden", !state.flipView);
@@ -1125,12 +1939,14 @@
           const isEdit = state.seatingMode === "edit";
 
           if (s) {
+            const absent = isAbsentToday(s);
+            const pendingHw = getPendingHwCount(s);
             const avatar = s.photo
-              ? `<img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />`
-              : `<div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm shrink-0">${escapeHtml((s.name || "?").slice(0, 1))}</div>`;
+              ? `<img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0 ${absent ? "grayscale" : ""}" />`
+              : `<div class="w-10 h-10 rounded-full ${absent ? "bg-slate-200 text-slate-500" : "bg-emerald-100 text-teal-800"} font-bold flex items-center justify-center text-sm shrink-0">${escapeHtml((s.name || "?").slice(0, 1))}</div>`;
 
             html += `
-              <div class="seat-card relative bg-white border-2 ${isSelected ? "seat-selected border-amber-400" : "border-slate-200"} rounded-xl p-2.5 shadow-sm cursor-pointer select-none flex flex-col justify-between min-h-[112px]"
+              <div class="seat-card relative ${absent ? "bg-slate-100 opacity-65 border-emerald-300/70" : "bg-white border-slate-200"} border-2 ${isSelected ? "seat-selected border-amber-400" : ""} rounded-xl p-2.5 shadow-sm cursor-pointer select-none flex flex-col justify-between min-h-[114px]"
                 draggable="${isEdit}"
                 ondragstart="app.onSeatDragStart(event, ${r}, ${c}, '${s.id}')"
                 ondragover="app.onSeatDragOver(event)"
@@ -1138,22 +1954,23 @@
                 ondrop="app.onSeatDrop(event, ${r}, ${c})"
                 onclick="app.onSeatClick(${r}, ${c}, '${s.id}')">
                 ${isEdit ? `<button onclick="event.stopPropagation(); app.openEditStudentModal('${s.id}')" title="Edit" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs flex items-center justify-center shadow-sm">✏️</button>` : ""}
+                ${absent && !isEdit ? `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-800/80 text-white text-[9px] font-bold">${escapeHtml(t("absentTag"))}</span>` : ""}
                 <div class="flex items-start gap-2 ${isEdit ? "pr-5" : ""}">
                   ${avatar}
                   <div class="min-w-0 flex-1">
-                    <div class="text-[11px] font-bold text-slate-400 leading-tight">${escapeHtml(s.className || "")} #${escapeHtml(s.classNo || "")}</div>
-                    <div class="text-xs sm:text-[13px] font-bold text-slate-800 leading-tight mt-0.5 name-two-lines">${escapeHtml(s.name)}</div>
+                    <div class="text-[11px] font-bold text-emerald-700/65 leading-tight">${escapeHtml(s.className || "")} #${escapeHtml(s.classNo || "")}</div>
+                    <div class="text-xs sm:text-[13px] font-bold text-emerald-950 leading-tight mt-0.5 name-two-lines">${escapeHtml(s.name)}</div>
                   </div>
                 </div>
                 <div class="mt-2 pt-1.5 border-t border-slate-100 flex justify-between text-[11px] font-bold">
                   <span class="text-emerald-600">👍${s.good || 0}</span>
                   <span class="text-rose-600">👎${s.bad || 0}</span>
-                  <span class="text-amber-600">📝${s.missingHw || 0}</span>
+                  <span class="${pendingHw > 0 ? "text-amber-700 bg-amber-100/80 px-1 rounded" : "text-emerald-700/45"}">📝${s.missingHw || 0}</span>
                 </div>
               </div>`;
           } else {
             html += `
-              <div class="seat-card min-h-[112px] rounded-xl border-2 border-dashed ${isSelected ? "seat-selected border-amber-400 bg-amber-50" : "border-slate-200 bg-slate-50/70"} flex items-center justify-center text-xs text-slate-400 ${isEdit ? "cursor-pointer hover:border-amber-300" : ""}"
+              <div class="seat-card min-h-[114px] rounded-xl border-2 border-dashed ${isSelected ? "seat-selected border-amber-400 bg-amber-50" : "border-slate-200 bg-slate-50"} flex items-center justify-center text-xs text-emerald-700/50 ${isEdit ? "cursor-pointer hover:border-amber-300" : ""}"
                 ondragover="app.onSeatDragOver(event)"
                 ondragleave="app.onSeatDragLeave(event)"
                 ondrop="app.onSeatDrop(event, ${r}, ${c})"
@@ -1211,6 +2028,10 @@
         if (studentId) openScoreModal(studentId);
         return;
       }
+      if (state.seatingMode === "attendance") {
+        if (studentId) await toggleStudentAbsent(studentId);
+        return;
+      }
       if (!state.selectedSeat) {
         if (!studentId) return;
         state.selectedSeat = { row, col, studentId };
@@ -1231,12 +2052,201 @@
       if (toRow < 0 || toCol < 0) return;
       const targetStudent = state.students.find(s => s.row === toRow && s.col === toCol);
       const batch = writeBatch(db);
-      batch.update(doc(db, "teacher_data", "s2a", "students", sourceId), { row: toRow, col: toCol });
+      batch.update(studentDocRef(sourceId), { row: toRow, col: toCol });
       if (targetStudent && targetStudent.id !== sourceId) {
-        batch.update(doc(db, "teacher_data", "s2a", "students", targetStudent.id), { row: fromRow, col: fromCol });
+        batch.update(studentDocRef(targetStudent.id), { row: fromRow, col: fromCol });
       }
       await batch.commit();
       showToast(t("seatUpdatedToast"));
+    }
+
+    // ==================== PAGE 4: MISSING HOMEWORK TRACKER ====================
+    function setHwFilterStatus(status) {
+      state.hwFilterStatus = status;
+      renderHwTracker();
+    }
+
+    function setHwFilterTopic(idx) {
+      state.hwFilterTopic = idx < 0 ? "" : (state.hwTopicsCache[idx] || "");
+      renderHwTracker();
+    }
+
+    function renderHwTracker() {
+      const allItems = [];
+      let totalPending = 0;
+
+      state.students.forEach(s => {
+        (s.logs || []).forEach((log, logIdx) => {
+          if (!isHwLog(log)) return;
+          if (!log.resolved) totalPending++;
+          allItems.push({
+            student: s,
+            log,
+            logIdx,
+            topic: (log.note || "").trim() || t("hwUnnamed")
+          });
+        });
+      });
+
+      const badge = document.getElementById("hw-pending-badge");
+      if (badge) {
+        badge.textContent = totalPending;
+        badge.classList.toggle("hidden", totalPending === 0);
+      }
+
+      ["pending", "resolved", "all"].forEach(st => {
+        const btn = document.getElementById(`hw-filter-${st}`);
+        if (btn) {
+          btn.className = `px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${state.hwFilterStatus === st ? "bg-white text-teal-800 shadow-sm" : "text-emerald-900/70 hover:text-emerald-950"}`;
+        }
+      });
+
+      const statusFiltered = allItems.filter(item => {
+        if (state.hwFilterStatus === "pending") return !item.log.resolved;
+        if (state.hwFilterStatus === "resolved") return !!item.log.resolved;
+        return true;
+      });
+
+      const topicCounts = new Map();
+      statusFiltered.forEach(item => {
+        topicCounts.set(item.topic, (topicCounts.get(item.topic) || 0) + 1);
+      });
+      state.hwTopicsCache = Array.from(topicCounts.keys());
+
+      if (state.hwFilterTopic && !topicCounts.has(state.hwFilterTopic)) {
+        state.hwFilterTopic = "";
+      }
+
+      const chipsEl = document.getElementById("hw-topic-chips");
+      if (chipsEl) {
+        if (state.hwTopicsCache.length > 0) {
+          chipsEl.innerHTML = `
+            <button onclick="app.setHwFilterTopic(-1)"
+              class="px-3 py-1 rounded-full text-xs font-bold border transition ${!state.hwFilterTopic ? "bg-teal-700 text-white border-teal-700" : "bg-slate-50 text-emerald-900 border-slate-200 hover:bg-emerald-100"}">
+              ${escapeHtml(t("hwAllTopics"))} (${statusFiltered.length})
+            </button>
+            ${state.hwTopicsCache.map((topic, idx) => `
+              <button onclick="app.setHwFilterTopic(${idx})"
+                class="px-3 py-1 rounded-full text-xs font-bold border transition ${state.hwFilterTopic === topic ? "bg-amber-600 text-white border-amber-600" : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"}">
+                ${escapeHtml(topic)} (${topicCounts.get(topic)})
+              </button>
+            `).join("")}`;
+        } else {
+          chipsEl.innerHTML = "";
+        }
+      }
+
+      const finalItems = state.hwFilterTopic
+        ? statusFiltered.filter(i => i.topic === state.hwFilterTopic)
+        : statusFiltered;
+
+      const listEl = document.getElementById("hw-tracker-list");
+      if (!listEl) return;
+
+      if (finalItems.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-10 text-center text-emerald-700/60 text-sm">
+            ${escapeHtml(state.hwFilterStatus === "pending" ? t("hwEmptyPending") : t("hwEmptyAll"))}
+          </div>`;
+        return;
+      }
+
+      listEl.innerHTML = finalItems.map(item => `
+        <div class="p-4 flex flex-wrap items-center justify-between gap-3 hover:bg-slate-50 transition">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-full ${item.log.resolved ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"} font-extrabold text-xs flex items-center justify-center shrink-0">
+              #${escapeHtml(item.student.classNo || "")}
+            </div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-emerald-950">${escapeHtml(item.student.name)}</span>
+                <span class="px-2 py-0.5 rounded-md text-xs font-bold ${item.log.resolved ? "bg-emerald-50 text-emerald-700 line-through" : "bg-amber-100 text-amber-900"}">
+                  ${escapeHtml(item.topic)}
+                </span>
+              </div>
+              <div class="text-xs text-emerald-700/65 mt-0.5">
+                ${escapeHtml(item.student.className || "")} · ${escapeHtml(item.log.time || "")}
+                ${item.log.resolved ? ` · <span class="text-emerald-600 font-semibold">✅ ${escapeHtml(t("hwResolvedBadge"))} (${escapeHtml(item.log.resolvedAt || "")})</span>` : ""}
+              </div>
+            </div>
+          </div>
+          <button onclick="app.toggleHwResolved('${item.student.id}', ${item.logIdx})"
+            class="px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition shrink-0 ${item.log.resolved ? "bg-slate-100 hover:bg-emerald-200/80 text-emerald-900" : "bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95"}">
+            ${escapeHtml(item.log.resolved ? t("hwUndoResolvedBtn") : t("hwMarkResolvedBtn"))}
+          </button>
+        </div>
+      `).join("");
+    }
+
+    async function toggleHwResolved(studentId, logIdx) {
+      const s = state.students.find(st => st.id === studentId);
+      if (!s || !s.logs || !s.logs[logIdx]) return;
+      const updatedLogs = s.logs.map((l, i) => {
+        if (i !== logIdx) return l;
+        const nextResolved = !l.resolved;
+        return {
+          ...l,
+          resolved: nextResolved,
+          resolvedAt: nextResolved ? nowTimeStr() : ""
+        };
+      });
+      await updateDoc(studentDocRef(studentId), { logs: updatedLogs });
+      showToast(updatedLogs[logIdx].resolved ? t("hwResolvedToast") : t("hwReopenedToast"));
+    }
+
+    // ==================== QUICK TAGS ====================
+    function renderQuickTags() {
+      const bEl = document.getElementById("behavior-quick-tags");
+      if (bEl) {
+        bEl.innerHTML = state.behaviorTags.map((tag, idx) => `
+          <span class="inline-flex items-center gap-1 bg-slate-100 hover:bg-emerald-200/70 text-emerald-900 rounded-full text-[11px] font-semibold pl-2.5 pr-1.5 py-1 transition">
+            <button type="button" onclick="app.applyQuickTag('behavior', ${idx})">${escapeHtml(tag)}</button>
+            <button type="button" onclick="app.deleteQuickTag('behavior', ${idx})" class="text-emerald-700/50 hover:text-rose-600 leading-none px-0.5">&times;</button>
+          </span>`).join("");
+      }
+
+      const hEl = document.getElementById("hw-quick-tags");
+      if (hEl) {
+        hEl.innerHTML = state.hwTags.map((tag, idx) => `
+          <span class="inline-flex items-center gap-1 bg-white border border-amber-200 hover:bg-amber-100 text-amber-900 rounded-full text-[11px] font-semibold pl-2.5 pr-1.5 py-1 transition">
+            <button type="button" onclick="app.applyQuickTag('hw', ${idx})">${escapeHtml(tag)}</button>
+            <button type="button" onclick="app.deleteQuickTag('hw', ${idx})" class="text-amber-400 hover:text-rose-600 leading-none px-0.5">&times;</button>
+          </span>`).join("");
+      }
+    }
+
+    function applyQuickTag(kind, idx) {
+      if (kind === "hw") {
+        const tag = state.hwTags[idx];
+        if (tag) document.getElementById("sm-hw-note").value = tag;
+      } else {
+        const tag = state.behaviorTags[idx];
+        if (tag) document.getElementById("sm-note").value = tag;
+      }
+    }
+
+    async function rememberQuickTag(kind, text) {
+      const clean = (text || "").trim();
+      if (!clean || clean.length > 36) return;
+      if (kind === "hw") {
+        state.hwTags = [clean, ...state.hwTags.filter(x => x !== clean)].slice(0, 12);
+      } else {
+        state.behaviorTags = [clean, ...state.behaviorTags.filter(x => x !== clean)].slice(0, 12);
+      }
+      await setDoc(doc(db, "teacher_data", "quick_tags"), {
+        hwTags: state.hwTags,
+        behaviorTags: state.behaviorTags
+      }, { merge: true });
+    }
+
+    async function deleteQuickTag(kind, idx) {
+      if (kind === "hw") state.hwTags = state.hwTags.filter((_, i) => i !== idx);
+      else state.behaviorTags = state.behaviorTags.filter((_, i) => i !== idx);
+      renderQuickTags();
+      await setDoc(doc(db, "teacher_data", "quick_tags"), {
+        hwTags: state.hwTags,
+        behaviorTags: state.behaviorTags
+      }, { merge: true });
     }
 
     // ==================== SCORING MODAL ====================
@@ -1251,6 +2261,7 @@
       state.activeStudentId = studentId;
       document.getElementById("sm-note").value = "";
       document.getElementById("sm-hw-note").value = "";
+      renderQuickTags();
       refreshScoreModal();
       document.getElementById("score-modal").classList.remove("hidden");
     }
@@ -1263,6 +2274,15 @@
       document.getElementById("sm-good").textContent = s.good || 0;
       document.getElementById("sm-bad").textContent = s.bad || 0;
       document.getElementById("sm-hw").textContent = s.missingHw || 0;
+
+      const absBtn = document.getElementById("sm-absent-btn");
+      if (isAbsentToday(s)) {
+        absBtn.textContent = t("markPresentBtn");
+        absBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold border bg-amber-400 text-slate-900 border-amber-300";
+      } else {
+        absBtn.textContent = t("markAbsentBtn");
+        absBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold border bg-white/15 hover:bg-white/25 text-white border-white/30";
+      }
 
       const img = document.getElementById("sm-photo");
       const av = document.getElementById("sm-avatar");
@@ -1279,17 +2299,22 @@
       const logsEl = document.getElementById("sm-logs");
       const logs = s.logs || [];
       if (logs.length === 0) {
-        logsEl.innerHTML = `<div class="text-slate-400 text-center py-2">${escapeHtml(t("noLogsYet"))}</div>`;
+        logsEl.innerHTML = `<div class="text-emerald-700/60 text-center py-2">${escapeHtml(t("noLogsYet"))}</div>`;
       } else {
-        logsEl.innerHTML = logs.slice(0, 25).map(l => {
-          const isHw = l.type === "missingHw" || (l.label || "").includes("欠交");
+        logsEl.innerHTML = logs.slice(0, 25).map((l, idx) => {
+          const hw = isHwLog(l);
           return `
-            <div class="flex justify-between items-start gap-2 border-b border-slate-200/70 pb-1.5 last:border-0 ${isHw ? "bg-amber-50/70 -mx-1 px-1.5 py-1 rounded" : ""}">
+            <div class="flex justify-between items-center gap-2 border-b border-slate-200/70 pb-1.5 last:border-0 ${hw ? (l.resolved ? "bg-emerald-50/70" : "bg-amber-50/80") + " -mx-1 px-1.5 py-1 rounded" : ""}">
               <div class="min-w-0">
                 <span class="font-bold">${escapeHtml(getLogDisplayLabel(l))}</span>
-                ${l.note ? `<span class="text-slate-700 ml-1 break-words">- ${escapeHtml(l.note)}</span>` : ""}
+                ${l.note ? `<span class="text-emerald-950 ml-1 break-words ${l.resolved ? "line-through opacity-50" : ""}">- ${escapeHtml(l.note)}</span>` : ""}
+                <span class="text-[10px] text-emerald-700/60 ml-1">(${escapeHtml(l.time || "")})</span>
               </div>
-              <span class="text-[10px] text-slate-400 shrink-0">${escapeHtml(l.time || "")}</span>
+              ${hw ? `
+                <button onclick="app.toggleHwResolved('${s.id}', ${idx})"
+                  class="shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-bold ${l.resolved ? "bg-slate-100 text-emerald-900" : "bg-emerald-600 text-white hover:bg-emerald-700"}">
+                  ${escapeHtml(l.resolved ? t("hwUndoResolvedBtn") : t("hwMarkResolvedBtn"))}
+                </button>` : ""}
             </div>`;
         }).join("");
       }
@@ -1298,6 +2323,7 @@
     async function addScore(field) {
       const note = document.getElementById("sm-note").value.trim();
       await updateStudentScore(state.activeStudentId, field, note);
+      if (note) await rememberQuickTag("behavior", note);
       document.getElementById("sm-note").value = "";
       showToast(t("scoreSavedToast"));
     }
@@ -1305,6 +2331,7 @@
     async function addMissingHw() {
       const hwContent = document.getElementById("sm-hw-note").value.trim();
       await updateStudentScore(state.activeStudentId, "missingHw", hwContent);
+      if (hwContent) await rememberQuickTag("hw", hwContent);
       document.getElementById("sm-hw-note").value = "";
       showToast(t("scoreSavedToast"));
     }
@@ -1314,17 +2341,17 @@
       if (!s) return;
       const newVal = (s[field] || 0) + 1;
       const labelMap = { good: "👍 好表現 (+1)", bad: "👎 壞表現 (+1)", missingHw: "📝 欠交功課 (+1)" };
-      const now = new Date();
-      const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const newLog = {
+        id: "log_" + Date.now().toString(36),
         type: field,
         label: labelMap[field],
         note,
-        time: timeStr,
-        by: state.user.email
+        time: nowTimeStr(),
+        by: state.user.email,
+        resolved: false
       };
       const updatedLogs = [newLog, ...(s.logs || [])].slice(0, 60);
-      await updateDoc(doc(db, "teacher_data", "s2a", "students", studentId), {
+      await updateDoc(studentDocRef(studentId), {
         [field]: newVal,
         logs: updatedLogs
       });
@@ -1338,13 +2365,13 @@
       state.editingPhotoBase64 = s.photo || "";
       state.editingLogs = (s.logs || []).map(l => ({ ...l }));
 
-      document.getElementById("es-class").value = s.className || "2A";
+      document.getElementById("es-class").value = s.className || getCurrentClassName();
       document.getElementById("es-no").value = s.classNo || "";
       document.getElementById("es-name").value = s.name || "";
       document.getElementById("es-good").value = s.good || 0;
       document.getElementById("es-bad").value = s.bad || 0;
       document.getElementById("es-hw").value = s.missingHw || 0;
-      document.getElementById("es-preview").src = s.photo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e2e8f0'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2364748b' font-size='14'%3EPhoto%3C/text%3E%3C/svg%3E";
+      document.getElementById("es-preview").src = s.photo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23d9eadf'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%232f5d47' font-size='14'%3EPhoto%3C/text%3E%3C/svg%3E";
 
       renderEditLogsEditor();
       document.getElementById("edit-student-modal").classList.remove("hidden");
@@ -1354,13 +2381,17 @@
       const container = document.getElementById("es-logs-editor");
       if (!container) return;
       if (state.editingLogs.length === 0) {
-        container.innerHTML = `<div class="text-xs text-slate-400 text-center py-2">${escapeHtml(t("noLogsYet"))}</div>`;
+        container.innerHTML = `<div class="text-xs text-emerald-700/60 text-center py-2">${escapeHtml(t("noLogsYet"))}</div>`;
         return;
       }
       container.innerHTML = state.editingLogs.map((l, idx) => `
         <div class="bg-white border border-slate-200 rounded-lg p-2 space-y-1.5">
           <div class="flex items-center justify-between text-xs">
-            <span class="font-bold text-slate-700">${escapeHtml(getLogDisplayLabel(l))} <span class="text-slate-400 font-normal">(${escapeHtml(l.time || "")})</span></span>
+            <span class="font-bold text-emerald-950">
+              ${escapeHtml(getLogDisplayLabel(l))}
+              <span class="text-emerald-700/60 font-normal">(${escapeHtml(l.time || "")})</span>
+              ${isHwLog(l) && l.resolved ? `<span class="text-emerald-600 ml-1">[${escapeHtml(t("hwResolvedBadge"))}]</span>` : ""}
+            </span>
             <button type="button" onclick="app.removeEditingLog(${idx})" class="text-rose-500 hover:text-rose-700 font-bold text-xs px-1.5 py-0.5 rounded hover:bg-rose-50">
               🗑️ ${escapeHtml(t("deleteBtn"))}
             </button>
@@ -1368,7 +2399,7 @@
           <input type="text" value="${escapeHtml(l.note || "")}"
             oninput="app.updateEditingLogNote(${idx}, this.value)"
             placeholder="${escapeHtml(t("noteEditPlaceholder"))}"
-            class="w-full px-2.5 py-1 text-xs border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:outline-none" />
+            class="w-full px-2.5 py-1 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-teal-500 focus:outline-none" />
         </div>
       `).join("");
     }
@@ -1415,7 +2446,7 @@
     }
 
     async function saveEditingStudent() {
-      await updateDoc(doc(db, "teacher_data", "s2a", "students", state.activeStudentId), {
+      await updateDoc(studentDocRef(state.activeStudentId), {
         className: document.getElementById("es-class").value.trim(),
         classNo: document.getElementById("es-no").value.trim(),
         name: document.getElementById("es-name").value.trim(),
@@ -1431,7 +2462,7 @@
 
     async function deleteEditingStudent() {
       if (!confirm(t("confirmDeleteStudent"))) return;
-      await deleteDoc(doc(db, "teacher_data", "s2a", "students", state.activeStudentId));
+      await deleteDoc(studentDocRef(state.activeStudentId));
       closeModal("edit-student-modal");
       showToast(t("studentDeletedToast"));
     }
@@ -1446,6 +2477,7 @@
       const raw = document.getElementById("batch-input").value.trim();
       if (!raw) return;
 
+      const defaultClassName = getCurrentClassName();
       const occupied = new Set(state.students.map(s => `${s.row}-${s.col}`));
       const emptySlots = [];
       for (let r = 0; r < state.gridRows; r++) {
@@ -1459,17 +2491,17 @@
 
       lines.forEach(line => {
         const parts = line.split(/[,，\t]+/).map(p => p.trim());
-        let className = "2A", classNo = "", name = "";
+        let className = defaultClassName, classNo = "", name = "";
         if (parts.length >= 3) [className, classNo, name] = parts;
         else if (parts.length === 2) [classNo, name] = parts;
         else name = parts[0];
 
         const slot = emptySlots.shift() || { row: -1, col: -1 };
-        const ref = doc(collection(db, "teacher_data", "s2a", "students"));
+        const ref = doc(collection(db, "teacher_data", state.currentClassId, "students"));
         batch.set(ref, {
           className, classNo, name,
           row: slot.row, col: slot.col,
-          photo: "", good: 0, bad: 0, missingHw: 0, logs: []
+          photo: "", good: 0, bad: 0, missingHw: 0, absentDate: "", logs: []
         });
       });
 
@@ -1486,20 +2518,28 @@
       const header = t("csvHeaders");
       const rows = state.students.map(s => {
         const logs = s.logs || [];
-        const hwList = logs
-          .filter(l => l.type === "missingHw" || (l.label || "").includes("欠交"))
+        const pendingList = logs
+          .filter(l => isHwLog(l) && !l.resolved)
           .map(l => `${l.time || ""} ${l.note || "(未註明)"}`.trim())
           .join(" ; ");
+        const allHwList = logs
+          .filter(isHwLog)
+          .map(l => `${l.time || ""} ${l.note || "(未註明)"}${l.resolved ? "[已補交]" : ""}`.trim())
+          .join(" ; ");
         const latest = logs[0] ? `${logs[0].time || ""} ${getLogDisplayLabel(logs[0])} ${logs[0].note || ""}`.trim() : "";
-        return [s.className, s.classNo, s.name, s.good || 0, s.bad || 0, s.missingHw || 0, hwList, latest]
-          .map(v => `"${String(v || "").replace(/"/g, '""')}"`).join(",");
+        return [
+          s.className, s.classNo, s.name,
+          isAbsentToday(s) ? "Y" : "",
+          s.good || 0, s.bad || 0, s.missingHw || 0,
+          pendingList, allHwList, latest
+        ].map(v => `"${String(v || "").replace(/"/g, '""')}"`).join(",");
       });
       const csv = "\uFEFF" + [header.join(","), ...rows].join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `2A_Records_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `${getCurrentClassName()}_Records_${localTodayStr()}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -1509,16 +2549,24 @@
     }
 
     function logout() {
+      stopTimerInterval();
       signOut(auth);
     }
 
     window.app = {
-      toggleLang, switchTab, toggleProjectorLock, onWheelOptionChange, spinWheel, resetWheelPool,
-      quickScoreFromWheel, setSeatingMode, saveGridSize, toggleFlipView, onSeatDragStart,
-      onSeatDragOver, onSeatDragLeave, onSeatDrop, onSeatClick, openScoreModal, addScore,
-      addMissingHw, openEditStudentModal, updateEditingLogNote, removeEditingLog,
-      handlePhotoUpload, saveEditingStudent, deleteEditingStudent, openBatchModal,
-      importBatchStudents, exportCSV, closeModal, logout
+      toggleLang, selectClass, openClassManager, addNewClass, renameClass, removeClass,
+      switchTab, toggleProjectorLock,
+      onWheelOptionChange, spinWheel, resetWheelPool, quickScoreFromWheel,
+      setTimerPreset, applyCustomTimer, toggleTimer, resetTimer,
+      generateGroups, clearGroups, awardGroupBonus,
+      setSeatingMode, saveGridSize, toggleFlipView, toggleActiveStudentAbsent, clearTodayAbsences,
+      onSeatDragStart, onSeatDragOver, onSeatDragLeave, onSeatDrop, onSeatClick,
+      setHwFilterStatus, setHwFilterTopic, toggleHwResolved,
+      applyQuickTag, deleteQuickTag,
+      openScoreModal, addScore, addMissingHw,
+      openEditStudentModal, updateEditingLogNote, removeEditingLog,
+      handlePhotoUpload, saveEditingStudent, deleteEditingStudent,
+      openBatchModal, importBatchStudents, exportCSV, closeModal, logout
     };
   </script>
 </body>
