@@ -11,7 +11,15 @@
     .seat-card:hover { transform: translateY(-2px); }
     .seat-selected { outline: 4px solid #f59e0b; transform: scale(1.04); z-index: 10; }
     .drag-over { background-color: #fef3c7 !important; border-color: #f59e0b !important; }
-    @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .name-two-lines {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    @keyframes popIn { 0% { transform: scale(0.88); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .animate-pop { animation: popIn 0.2s ease-out forwards; }
   </style>
 </head>
@@ -20,34 +28,38 @@
   <!-- Loading Overlay -->
   <div id="loading-screen" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
     <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-    <p class="text-slate-600 font-medium">正在連線至課室系統...</p>
+    <p id="loading-text" class="text-slate-600 font-medium">正在連線至課室系統...</p>
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium"></div>
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm"></div>
 
   <!-- Login Screen -->
-  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500">
+  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 relative">
+    <button onclick="app.toggleLang()"
+      class="lang-toggle-btn absolute top-4 right-4 px-3.5 py-2 bg-white/90 hover:bg-white text-indigo-700 rounded-xl text-xs font-bold shadow transition">
+      🌐 EN
+    </button>
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-pop">
       <div class="text-center mb-6">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-100 text-3xl mb-3">🏫</div>
-        <h1 class="text-2xl font-bold text-slate-800">中二英文 課堂自學平台</h1>
-        <p class="text-sm text-slate-500 mt-1">請登入老師或學生戶口</p>
+        <h1 class="text-2xl font-bold text-slate-800" data-i18n="loginTitle">中二英文 課堂自學平台</h1>
+        <p class="text-sm text-slate-500 mt-1" data-i18n="loginSubtitle">請登入老師或學生戶口</p>
       </div>
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">電郵 / 學生編號</label>
-          <input id="login-email" type="text" required placeholder="老師輸入電郵 / 學生輸入班號 (如 2a01)"
+          <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="emailLabel">電郵 / 學生編號</label>
+          <input id="login-email" type="text" required data-i18n-placeholder="emailPlaceholder" placeholder="老師輸入電郵 / 學生輸入班號 (如 2a01)"
             class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">密碼</label>
-          <input id="login-password" type="password" required placeholder="請輸入密碼"
+          <label class="block text-sm font-medium text-slate-700 mb-1" data-i18n="passwordLabel">密碼</label>
+          <input id="login-password" type="password" required data-i18n-placeholder="passwordPlaceholder" placeholder="請輸入密碼"
             class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
         </div>
         <p id="login-error" class="hidden text-sm text-rose-600 bg-rose-50 p-3 rounded-lg"></p>
         <button type="submit" id="login-btn"
-          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow transition">
+          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow transition" data-i18n="loginBtn">
           登入系統
         </button>
       </form>
@@ -70,27 +82,31 @@
         <!-- Tabs -->
         <nav class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
           <button id="tab-btn-wheel" onclick="app.switchTab('wheel')"
-            class="teacher-only hidden px-4 py-2 rounded-lg text-sm font-semibold transition">
+            class="teacher-only hidden px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabWheel">
             🎡 抽籤轉盤
           </button>
           <button id="tab-btn-seating" onclick="app.switchTab('seating')"
-            class="teacher-only hidden px-4 py-2 rounded-lg text-sm font-semibold transition">
+            class="teacher-only hidden px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabSeating">
             🪑 座位表紀錄
           </button>
           <button id="tab-btn-materials" onclick="app.switchTab('materials')"
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition">
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition" data-i18n="tabMaterials">
             📚 網上自學區
           </button>
         </nav>
 
         <!-- Right Controls -->
         <div class="flex items-center gap-2">
-          <button id="projector-lock-btn" onclick="app.toggleProjectorLock()" title="鎖定座位表，防止投影時誤按曝光"
+          <button onclick="app.toggleLang()"
+            class="lang-toggle-btn px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+            🌐 EN
+          </button>
+          <button id="projector-lock-btn" onclick="app.toggleProjectorLock()"
             class="teacher-only hidden px-3 py-1.5 rounded-lg text-xs font-semibold border transition">
             🔓 投影安全鎖：關
           </button>
           <button onclick="app.logout()"
-            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-700 transition">
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-700 transition" data-i18n="logoutBtn">
             登出
           </button>
         </div>
@@ -105,16 +121,35 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <!-- Wheel Canvas Area -->
           <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center">
-            <div class="w-full flex flex-wrap justify-between items-center mb-4 gap-2">
-              <h2 class="text-xl font-bold text-slate-800">🎡 隨機抽籤轉盤</h2>
-              <div class="flex items-center gap-4 text-sm">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
+            <div class="w-full flex flex-wrap justify-between items-center mb-3 gap-2">
+              <h2 class="text-xl font-bold text-slate-800" data-i18n="wheelTitle">🎡 隨機抽籤轉盤</h2>
+              <div class="flex flex-wrap items-center gap-3 text-sm">
+                <label class="flex items-center gap-1.5 cursor-pointer select-none">
                   <input id="wheel-remove-picked" type="checkbox" checked class="w-4 h-4 accent-indigo-600 rounded" />
-                  <span>抽中後暫時移出</span>
+                  <span data-i18n="wheelRemovePicked">抽中後暫時移出</span>
                 </label>
                 <button onclick="app.resetWheelPool()" class="text-indigo-600 hover:underline font-medium">
-                  ↺ 重置名單 (<span id="wheel-count">0</span>人)
+                  <span data-i18n="wheelReset">↺ 重置名單</span> (<span id="wheel-count">0</span>)
                 </button>
+              </div>
+            </div>
+
+            <!-- Wheel Label Display Options -->
+            <div class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-4 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span class="font-bold text-slate-600" data-i18n="wheelDisplayLabel">轉盤顯示內容：</span>
+              <div class="flex flex-wrap items-center gap-4">
+                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-slate-700">
+                  <input id="wheel-show-class" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-indigo-600 rounded" />
+                  <span data-i18n="optClass">班別</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-slate-700">
+                  <input id="wheel-show-no" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-indigo-600 rounded" />
+                  <span data-i18n="optNo">班號</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer select-none font-medium text-slate-700">
+                  <input id="wheel-show-name" type="checkbox" checked onchange="app.onWheelOptionChange()" class="w-4 h-4 accent-indigo-600 rounded" />
+                  <span data-i18n="optName">姓名</span>
+                </label>
               </div>
             </div>
 
@@ -125,7 +160,7 @@
             </div>
 
             <button id="spin-btn" onclick="app.spinWheel()"
-              class="mt-5 px-10 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xl font-bold rounded-2xl shadow-lg active:scale-95 transition">
+              class="mt-5 px-10 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xl font-bold rounded-2xl shadow-lg active:scale-95 transition" data-i18n="spinBtn">
               🎯 開始抽籤！
             </button>
           </div>
@@ -133,16 +168,16 @@
           <!-- Right Panel: Result & Quick Scoring -->
           <div class="lg:col-span-4 space-y-4">
             <div class="bg-white rounded-2xl shadow-sm p-6 text-center">
-              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">今次抽中同學</h3>
+              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3" data-i18n="winnerHeading">今次抽中同學</h3>
               <div id="wheel-winner-box" class="py-6">
-                <p class="text-slate-400 text-sm">按下「開始抽籤」抽出幸運同學</p>
+                <p class="text-slate-400 text-sm" data-i18n="winnerEmpty">按下「開始抽籤」抽出幸運同學</p>
               </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-5">
-              <h3 class="font-bold text-slate-700 mb-2 text-sm">已抽中紀錄（本堂）</h3>
+              <h3 class="font-bold text-slate-700 mb-2 text-sm" data-i18n="wheelHistoryHeading">已抽中紀錄（本堂）</h3>
               <div id="wheel-history" class="flex flex-wrap gap-1.5 text-xs text-slate-500">
-                <span>暫無紀錄</span>
+                <span data-i18n="noRecords">暫無紀錄</span>
               </div>
             </div>
           </div>
@@ -154,22 +189,22 @@
         <!-- Toolbar -->
         <div class="bg-white rounded-2xl shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-2">
-            <h2 class="text-xl font-bold text-slate-800 mr-2">🪑 課室座位表</h2>
+            <h2 class="text-xl font-bold text-slate-800 mr-2" data-i18n="seatingTitle">🪑 課室座位表</h2>
             <button id="mode-score-btn" onclick="app.setSeatingMode('score')"
-              class="px-4 py-2 rounded-xl text-sm font-bold transition">
+              class="px-4 py-2 rounded-xl text-sm font-bold transition" data-i18n="modeScore">
               ✏️ 上堂記分模式
             </button>
             <button id="mode-edit-btn" onclick="app.setSeatingMode('edit')"
-              class="px-4 py-2 rounded-xl text-sm font-bold transition">
+              class="px-4 py-2 rounded-xl text-sm font-bold transition" data-i18n="modeEdit">
               🛠️ 後台管理 / 調位模式
             </button>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
             <button onclick="app.toggleFlipView()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-semibold">
-              🔄 切換視角（<span id="view-label">講台在上方</span>）
+              🔄 <span data-i18n="flipView">切換視角</span>（<span id="view-label">講台在上方</span>）
             </button>
-            <button onclick="app.exportCSV()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold border border-emerald-200">
+            <button onclick="app.exportCSV()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold border border-emerald-200" data-i18n="exportCsv">
               📥 匯出 Excel 紀錄
             </button>
           </div>
@@ -178,20 +213,20 @@
         <!-- Admin Edit Controls (Only visible in Edit Mode) -->
         <div id="seating-admin-bar" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="text-sm text-amber-900 font-medium">
-              💡 <strong>調位方法：</strong>用滑鼠直接「拖拉」座位互換，或喺 iPad 先點選一個座位，再點選目標位置即可互換／移動。
+            <div class="text-sm text-amber-900 font-medium" data-i18n="editTip">
+              💡 拖拉座位可互換位置（iPad 點兩格互換）；點學生右上角「✏️」可改名、換相及修正錯誤紀錄。
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <label class="text-xs font-semibold text-amber-900">直行數(列):
+              <label class="text-xs font-semibold text-amber-900"><span data-i18n="gridCols">直行數(列):</span>
                 <input id="grid-cols" type="number" min="2" max="10" value="6" class="w-14 px-2 py-1 rounded border border-amber-300 bg-white ml-1" />
               </label>
-              <label class="text-xs font-semibold text-amber-900">橫排數(行):
+              <label class="text-xs font-semibold text-amber-900"><span data-i18n="gridRows">橫排數(行):</span>
                 <input id="grid-rows" type="number" min="2" max="10" value="6" class="w-14 px-2 py-1 rounded border border-amber-300 bg-white ml-1" />
               </label>
-              <button onclick="app.saveGridSize()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold">
+              <button onclick="app.saveGridSize()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold" data-i18n="applyGrid">
                 套用格數
               </button>
-              <button onclick="app.openBatchModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">
+              <button onclick="app.openBatchModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold" data-i18n="batchImportBtn">
                 ➕ 批量匯入 / 新增學生
               </button>
             </div>
@@ -200,20 +235,20 @@
 
         <!-- Classroom Grid Container -->
         <div class="bg-white rounded-2xl shadow-sm p-4 md:p-6 overflow-x-auto">
-          <div id="board-top" class="w-full max-w-md mx-auto mb-5 py-2 bg-slate-800 text-white text-center text-sm font-bold rounded-xl tracking-widest">
+          <div id="board-top" class="w-full max-w-md mx-auto mb-5 py-2 bg-slate-800 text-white text-center text-sm font-bold rounded-xl tracking-widest" data-i18n="blackboard">
             黑板 ／ 老師講台
           </div>
 
-          <div id="seating-grid" class="grid gap-3 min-w-[640px]"></div>
+          <div id="seating-grid" class="grid gap-3 min-w-[680px]"></div>
 
-          <div id="board-bottom" class="hidden w-full max-w-md mx-auto mt-5 py-2 bg-slate-800 text-white text-center text-sm font-bold rounded-xl tracking-widest">
+          <div id="board-bottom" class="hidden w-full max-w-md mx-auto mt-5 py-2 bg-slate-800 text-white text-center text-sm font-bold rounded-xl tracking-widest" data-i18n="blackboard">
             黑板 ／ 老師講台
           </div>
         </div>
 
-        <!-- Unassigned Students Pool (if any) -->
+        <!-- Unassigned Students Pool -->
         <div id="unassigned-box" class="hidden bg-white rounded-2xl shadow-sm p-4">
-          <h3 class="text-sm font-bold text-slate-700 mb-2">📦 未編排座位嘅同學（在調位模式下點選佢哋，再點空位即可放入）</h3>
+          <h3 class="text-sm font-bold text-slate-700 mb-2" data-i18n="unassignedTitle">📦 未編排座位嘅同學（在調位模式下點選佢哋，再點空位即可放入）</h3>
           <div id="unassigned-list" class="flex flex-wrap gap-2"></div>
         </div>
       </section>
@@ -222,117 +257,165 @@
       <section id="page-materials" class="hidden space-y-5">
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 class="text-xl font-bold text-slate-800">📚 網上自學區</h2>
-            <p class="text-sm text-slate-500">教學影片、PDF 筆記及互動練習（Kahoot 遊戲系統將於下階段加入）</p>
+            <h2 class="text-xl font-bold text-slate-800" data-i18n="materialsTitle">📚 網上自學區</h2>
+            <p class="text-sm text-slate-500" data-i18n="materialsSubtitle">教學影片、PDF 筆記及互動練習（Kahoot 遊戲系統將於下階段加入）</p>
           </div>
           <button onclick="app.openAddMaterialModal()"
-            class="teacher-only hidden px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow">
+            class="teacher-only hidden px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow" data-i18n="addMaterialBtn">
             ➕ 新增教材（影片 / PDF / 連結）
           </button>
         </div>
 
-        <div id="materials-list" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <p class="text-slate-400 text-sm col-span-full text-center py-10">載入教材中...</p>
-        </div>
+        <div id="materials-list" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
       </section>
     </main>
   </div>
 
-  <!-- ==================== MODAL: STUDENT SCORING & LOGS ==================== -->
+  <!-- ==================== MODAL: STUDENT SCORING & MISSING HW ==================== -->
   <div id="score-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-pop">
-      <div class="bg-indigo-600 text-white p-5 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <img id="sm-photo" class="w-14 h-14 rounded-full object-cover border-2 border-white bg-indigo-400 hidden" />
-          <div id="sm-avatar" class="w-14 h-14 rounded-full bg-indigo-400 flex items-center justify-center text-xl font-bold border-2 border-white"></div>
-          <div>
-            <div id="sm-name" class="text-lg font-bold"></div>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden animate-pop">
+      <div class="bg-indigo-600 text-white p-5 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+          <img id="sm-photo" class="w-14 h-14 rounded-full object-cover border-2 border-white bg-indigo-400 hidden shrink-0" />
+          <div id="sm-avatar" class="w-14 h-14 rounded-full bg-indigo-400 flex items-center justify-center text-xl font-bold border-2 border-white shrink-0"></div>
+          <div class="min-w-0">
+            <div id="sm-name" class="text-lg font-bold leading-snug break-words"></div>
             <div id="sm-sub" class="text-xs text-indigo-100"></div>
           </div>
         </div>
-        <button onclick="app.closeModal('score-modal')" class="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+        <button onclick="app.closeModal('score-modal')" class="text-white/80 hover:text-white text-2xl leading-none ml-2">&times;</button>
       </div>
 
-      <div class="p-5 space-y-4">
-        <!-- Counters -->
-        <div class="grid grid-cols-3 gap-3 text-center">
-          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-            <div class="text-xs font-bold text-emerald-700">👍 好表現</div>
-            <div id="sm-good" class="text-2xl font-extrabold text-emerald-600 my-1">0</div>
-            <div class="flex justify-center gap-1">
-              <button onclick="app.adjustScore('good', -1)" class="w-7 h-7 bg-white border rounded-lg text-sm font-bold hover:bg-slate-100">-</button>
-              <button onclick="app.adjustScore('good', 1)" class="w-7 h-7 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700">+</button>
-            </div>
+      <div class="p-5 space-y-4 overflow-y-auto">
+        <!-- Good & Bad Performance (NO MINUS BUTTON) -->
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col items-center">
+            <div class="text-xs font-bold text-emerald-700" data-i18n="goodLabel">👍 好表現</div>
+            <div id="sm-good" class="text-3xl font-extrabold text-emerald-600 my-1">0</div>
+            <button onclick="app.addScore('good')"
+              class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-sm font-bold shadow-sm transition" data-i18n="addGoodBtn">
+              +1 好表現
+            </button>
           </div>
-          <div class="bg-rose-50 border border-rose-200 rounded-xl p-3">
-            <div class="text-xs font-bold text-rose-700">👎 壞表現</div>
-            <div id="sm-bad" class="text-2xl font-extrabold text-rose-600 my-1">0</div>
-            <div class="flex justify-center gap-1">
-              <button onclick="app.adjustScore('bad', -1)" class="w-7 h-7 bg-white border rounded-lg text-sm font-bold hover:bg-slate-100">-</button>
-              <button onclick="app.adjustScore('bad', 1)" class="w-7 h-7 bg-rose-600 text-white rounded-lg text-sm font-bold hover:bg-rose-700">+</button>
-            </div>
-          </div>
-          <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
-            <div class="text-xs font-bold text-amber-700">📝 欠交功課</div>
-            <div id="sm-hw" class="text-2xl font-extrabold text-amber-600 my-1">0</div>
-            <div class="flex justify-center gap-1">
-              <button onclick="app.adjustScore('missingHw', -1)" class="w-7 h-7 bg-white border rounded-lg text-sm font-bold hover:bg-slate-100">-</button>
-              <button onclick="app.adjustScore('missingHw', 1)" class="w-7 h-7 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700">+</button>
-            </div>
+          <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 flex flex-col items-center">
+            <div class="text-xs font-bold text-rose-700" data-i18n="badLabel">👎 壞表現</div>
+            <div id="sm-bad" class="text-3xl font-extrabold text-rose-600 my-1">0</div>
+            <button onclick="app.addScore('bad')"
+              class="w-full py-2 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-xl text-sm font-bold shadow-sm transition" data-i18n="addBadBtn">
+              +1 壞表現
+            </button>
           </div>
         </div>
 
-        <!-- Optional Note Input -->
+        <!-- Optional Note for Good/Bad -->
         <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">備註原因（選填，按加減掣時會一併記錄）</label>
-          <input id="sm-note" type="text" placeholder="例如：主動舉手答問題 / 欠交 WS 3"
+          <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="behaviorNoteLabel">表現備註（選填，按上方按鈕時一併記錄）</label>
+          <input id="sm-note" type="text" data-i18n-placeholder="behaviorNotePlaceholder" placeholder="例如：主動舉手答問題 / 上堂傾偈"
             class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+
+        <!-- Dedicated Missing Homework Box (NO MINUS BUTTON) -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-amber-800" data-i18n="hwLabel">📝 欠交功課</span>
+            <span class="text-sm font-extrabold text-amber-700 bg-white px-2.5 py-0.5 rounded-full border border-amber-200">
+              <span data-i18n="hwCountPrefix">累計：</span><span id="sm-hw">0</span>
+            </span>
+          </div>
+          <input id="sm-hw-note" type="text" data-i18n-placeholder="hwPlaceholder" placeholder="填寫欠交功課內容（如：WS 3、默書改正）"
+            class="w-full px-3 py-2 text-sm bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+          <button onclick="app.addMissingHw()"
+            class="w-full py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl text-sm font-bold shadow-sm transition" data-i18n="addHwBtn">
+            +1 記錄欠交功課
+          </button>
         </div>
 
         <!-- Recent Logs -->
         <div>
-          <div class="text-xs font-bold text-slate-500 mb-1.5">最近紀錄</div>
-          <div id="sm-logs" class="max-h-36 overflow-y-auto space-y-1.5 text-xs bg-slate-50 p-3 rounded-xl border"></div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-slate-500" data-i18n="recentLogsTitle">最近紀錄</span>
+            <span class="text-[11px] text-slate-400" data-i18n="editLogsHint">如入錯資料，請於「後台管理」修改</span>
+          </div>
+          <div id="sm-logs" class="max-h-40 overflow-y-auto space-y-1.5 text-xs bg-slate-50 p-3 rounded-xl border"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== MODAL: EDIT STUDENT / PHOTO ==================== -->
+  <!-- ==================== MODAL: BACKEND EDIT STUDENT, COUNTS & LOGS ==================== -->
   <div id="edit-student-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-pop">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold">編輯學生資料與相片</h3>
-        <button onclick="app.closeModal('edit-student-modal')" class="text-slate-400 hover:text-slate-700 text-2xl">&times;</button>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden animate-pop">
+      <div class="px-6 py-4 border-b flex justify-between items-center shrink-0">
+        <h3 class="text-lg font-bold text-slate-800" data-i18n="editStudentTitle">🛠️ 後台編輯學生資料與紀錄</h3>
+        <button onclick="app.closeModal('edit-student-modal')" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
       </div>
-      <div class="flex flex-col items-center gap-2">
-        <img id="es-preview" class="w-24 h-24 rounded-full object-cover border-2 border-indigo-200 bg-slate-100" />
-        <label class="cursor-pointer px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold">
-          📷 上傳 / 更換相片（自動壓縮）
-          <input id="es-photo-input" type="file" accept="image/*" class="hidden" onchange="app.handlePhotoUpload(event)" />
-        </label>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="text-xs font-semibold text-slate-600">班別</label>
-          <input id="es-class" type="text" class="w-full px-3 py-2 border rounded-xl text-sm" />
+
+      <div class="p-6 space-y-4 overflow-y-auto">
+        <!-- Photo & Basic Info -->
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <div class="flex flex-col items-center gap-2 shrink-0">
+            <img id="es-preview" class="w-20 h-20 rounded-full object-cover border-2 border-indigo-200 bg-slate-100" />
+            <label class="cursor-pointer px-2.5 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold" data-i18n="uploadPhotoBtn">
+              📷 更換相片
+              <input id="es-photo-input" type="file" accept="image/*" class="hidden" onchange="app.handlePhotoUpload(event)" />
+            </label>
+          </div>
+          <div class="flex-1 w-full space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-xs font-semibold text-slate-600" data-i18n="optClass">班別</label>
+                <input id="es-class" type="text" class="w-full px-3 py-1.5 border rounded-xl text-sm" />
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-slate-600" data-i18n="optNo">班號</label>
+                <input id="es-no" type="text" class="w-full px-3 py-1.5 border rounded-xl text-sm" />
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-600" data-i18n="studentNameLabel">學生姓名</label>
+              <input id="es-name" type="text" class="w-full px-3 py-1.5 border rounded-xl text-sm" />
+            </div>
+          </div>
         </div>
+
+        <!-- Edit Counts Directly -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+          <div class="text-xs font-bold text-slate-700" data-i18n="editCountsHeading">🔢 修正次數（如上堂入錯可直接修改數字）</div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-emerald-700 mb-1" data-i18n="goodLabel">👍 好表現</label>
+              <input id="es-good" type="number" min="0" class="w-full px-3 py-1.5 border border-emerald-300 rounded-lg text-sm font-bold text-center bg-white" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-rose-700 mb-1" data-i18n="badLabel">👎 壞表現</label>
+              <input id="es-bad" type="number" min="0" class="w-full px-3 py-1.5 border border-rose-300 rounded-lg text-sm font-bold text-center bg-white" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-amber-700 mb-1" data-i18n="hwLabel">📝 欠交功課</label>
+              <input id="es-hw" type="number" min="0" class="w-full px-3 py-1.5 border border-amber-300 rounded-lg text-sm font-bold text-center bg-white" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit / Delete Historical Logs -->
         <div>
-          <label class="text-xs font-semibold text-slate-600">班號</label>
-          <input id="es-no" type="text" class="w-full px-3 py-2 border rounded-xl text-sm" />
+          <div class="text-xs font-bold text-slate-700 mb-1.5" data-i18n="editLogsHeading">📋 修改或刪除詳細紀錄（可改錯字或刪除誤入項目）</div>
+          <div id="es-logs-editor" class="max-h-48 overflow-y-auto space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200"></div>
         </div>
       </div>
-      <div>
-        <label class="text-xs font-semibold text-slate-600">學生姓名</label>
-        <input id="es-name" type="text" class="w-full px-3 py-2 border rounded-xl text-sm" />
-      </div>
-      <div class="flex justify-between pt-2">
-        <button onclick="app.deleteEditingStudent()" class="px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold">
+
+      <div class="px-6 py-3.5 border-t bg-slate-50 flex justify-between items-center shrink-0">
+        <button onclick="app.deleteEditingStudent()" class="px-3 py-2 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold" data-i18n="deleteStudentBtn">
           🗑️ 刪除此學生
         </button>
-        <button onclick="app.saveEditingStudent()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold">
-          儲存變更
-        </button>
+        <div class="flex gap-2">
+          <button onclick="app.closeModal('edit-student-modal')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">
+            取消
+          </button>
+          <button onclick="app.saveEditingStudent()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow" data-i18n="saveChangesBtn">
+            儲存變更
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -341,17 +424,17 @@
   <div id="batch-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 animate-pop">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold">➕ 批量匯入全班學生</h3>
+        <h3 class="text-lg font-bold" data-i18n="batchModalTitle">➕ 批量匯入全班學生</h3>
         <button onclick="app.closeModal('batch-modal')" class="text-slate-400 hover:text-slate-700 text-2xl">&times;</button>
       </div>
-      <p class="text-xs text-slate-600 leading-relaxed">
-        每行輸入一位同學，格式為 <strong>班別, 班號, 姓名</strong>（用逗號分隔）。系統會自動將同學依次排入空座位。
+      <p class="text-xs text-slate-600 leading-relaxed" data-i18n="batchModalDesc">
+        每行輸入一位同學，格式為「班別, 班號, 姓名」（用逗號分隔）。系統會自動將同學依次排入空座位。
       </p>
-      <textarea id="batch-input" rows="8" placeholder="2A, 01, 陳大文&#10;2A, 02, 李小明&#10;2A, 03, 張美麗"
+      <textarea id="batch-input" rows="8" placeholder="2A, 01, CHAN Tai Man&#10;2A, 02, LEE Siu Ming&#10;2A, 03, CHEUNG Mei Lai"
         class="w-full p-3 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
       <div class="flex justify-end gap-2">
-        <button onclick="app.closeModal('batch-modal')" class="px-4 py-2 bg-slate-100 rounded-xl text-sm font-semibold">取消</button>
-        <button onclick="app.importBatchStudents()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold">
+        <button onclick="app.closeModal('batch-modal')" class="px-4 py-2 bg-slate-100 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">取消</button>
+        <button onclick="app.importBatchStudents()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold" data-i18n="importBtn">
           開始匯入
         </button>
       </div>
@@ -362,35 +445,35 @@
   <div id="material-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-pop">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold">➕ 新增網上教材</h3>
+        <h3 class="text-lg font-bold" data-i18n="addMatModalTitle">➕ 新增網上教材</h3>
         <button onclick="app.closeModal('material-modal')" class="text-slate-400 hover:text-slate-700 text-2xl">&times;</button>
       </div>
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">教材標題</label>
-        <input id="mat-title" type="text" placeholder="例如：Unit 3 Passive Voice 教學影片"
+        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matTitleLabel">教材標題</label>
+        <input id="mat-title" type="text" data-i18n-placeholder="matTitlePlaceholder" placeholder="例如：Unit 3 Passive Voice 教學影片"
           class="w-full px-3 py-2 border rounded-xl text-sm" />
       </div>
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">類型</label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matTypeLabel">類型</label>
         <select id="mat-type" class="w-full px-3 py-2 border rounded-xl text-sm bg-white">
-          <option value="youtube">🎬 YouTube 影片</option>
-          <option value="pdf">📄 Google Drive PDF 筆記</option>
-          <option value="link">🔗 外部網頁連結</option>
+          <option value="youtube" data-i18n="typeYoutube">🎬 YouTube 影片</option>
+          <option value="pdf" data-i18n="typePdf">📄 Google Drive PDF 筆記</option>
+          <option value="link" data-i18n="typeLink">🔗 外部網頁連結</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">網址連結（直接貼上普通分享連結即可）</label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matUrlLabel">網址連結（直接貼上普通分享連結即可）</label>
         <input id="mat-url" type="url" placeholder="https://..."
           class="w-full px-3 py-2 border rounded-xl text-sm" />
       </div>
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">簡短說明（選填）</label>
-        <textarea id="mat-desc" rows="2" placeholder="請同學觀看後完成工作紙第 2 頁"
+        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="matDescLabel">簡短說明（選填）</label>
+        <textarea id="mat-desc" rows="2" data-i18n-placeholder="matDescPlaceholder" placeholder="請同學觀看後完成工作紙第 2 頁"
           class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
       </div>
       <div class="flex justify-end gap-2">
-        <button onclick="app.closeModal('material-modal')" class="px-4 py-2 bg-slate-100 rounded-xl text-sm font-semibold">取消</button>
-        <button onclick="app.saveMaterial()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold">
+        <button onclick="app.closeModal('material-modal')" class="px-4 py-2 bg-slate-100 rounded-xl text-sm font-semibold" data-i18n="cancelBtn">取消</button>
+        <button onclick="app.saveMaterial()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold" data-i18n="publishBtn">
           發佈教材
         </button>
       </div>
@@ -424,24 +507,275 @@
     const auth = getAuth(firebaseApp);
     const db = getFirestore(firebaseApp);
 
+    // ==================== BILINGUAL DICTIONARY ====================
+    const I18N = {
+      zh: {
+        docTitle: "2A English 課堂與自學平台",
+        loading: "正在連線至課室系統...",
+        langSwitch: "🌐 EN",
+        loginTitle: "中二英文 課堂自學平台",
+        loginSubtitle: "請登入老師或學生戶口",
+        emailLabel: "電郵 / 學生編號",
+        emailPlaceholder: "老師輸入電郵 / 學生輸入班號 (如 2a01)",
+        passwordLabel: "密碼",
+        passwordPlaceholder: "請輸入密碼",
+        loginBtn: "登入系統",
+        loggingIn: "登入中...",
+        loginErr: "帳號或密碼錯誤，請再試一次。",
+        teacherBadge: "👩‍🏫 老師權限",
+        studentBadge: "🎓 學生戶口",
+        tabWheel: "🎡 抽籤轉盤",
+        tabSeating: "🪑 座位表紀錄",
+        tabMaterials: "📚 網上自學區",
+        lockOn: "🔒 投影安全鎖：開",
+        lockOff: "🔓 投影安全鎖：關",
+        lockBlockedToast: "🔒 投影安全鎖已開啟！請先按右上角解鎖再打開座位表。",
+        lockEnabledToast: "已鎖定座位表，上堂投影更安心",
+        lockDisabledToast: "已解鎖座位表",
+        logoutBtn: "登出",
+        wheelTitle: "🎡 隨機抽籤轉盤",
+        wheelRemovePicked: "抽中後暫時移出",
+        wheelReset: "↺ 重置名單",
+        wheelDisplayLabel: "轉盤顯示內容：",
+        optClass: "班別",
+        optNo: "班號",
+        optName: "姓名",
+        wheelNeedOneOpt: "最少要揀選一項顯示內容",
+        wheelEmptyStudents: "請先在「座位表紀錄」匯入學生名單",
+        wheelAllPicked: "所有同學已被抽中，請按「重置名單」",
+        spinBtn: "🎯 開始抽籤！",
+        winnerHeading: "今次抽中同學",
+        winnerEmpty: "按下「開始抽籤」抽出幸運同學",
+        wheelHistoryHeading: "已抽中紀錄（本堂）",
+        noRecords: "暫無紀錄",
+        wheelQuickTitle: "即時記分（直接寫入座位表）：",
+        wheelQuickNote: "轉盤抽答紀錄",
+        wheelResetToast: "轉盤名單已重置",
+        scoreSavedToast: "✅ 已成功記錄！",
+        seatingTitle: "🪑 課室座位表",
+        modeScore: "✏️ 上堂記分模式",
+        modeEdit: "🛠️ 後台管理 / 調位模式",
+        flipView: "切換視角",
+        boardTopLabel: "講台在上方",
+        boardBottomLabel: "講台在下方",
+        exportCsv: "📥 匯出 Excel 紀錄",
+        editTip: "💡 拖拉座位可互換位置（iPad 點兩格互換）；點學生右上角「✏️」可改名、換相及修正錯誤紀錄。",
+        gridCols: "直行數(列):",
+        gridRows: "橫排數(行):",
+        applyGrid: "套用格數",
+        batchImportBtn: "➕ 批量匯入 / 新增學生",
+        blackboard: "黑板 ／ 老師講台",
+        emptySeat: "空位",
+        unassignedTitle: "📦 未編排座位嘅同學（在調位模式下點選佢哋，再點空位即可放入）",
+        seatSelectedToast: "已選取學生，請點擊目標座位完成移動／互換",
+        seatUpdatedToast: "✅ 座位已更新",
+        gridUpdatedToast: "已更新座位表格數",
+        materialsTitle: "📚 網上自學區",
+        materialsSubtitle: "教學影片、PDF 筆記及互動練習（Kahoot 遊戲系統將於下階段加入）",
+        addMaterialBtn: "➕ 新增教材（影片 / PDF / 連結）",
+        noMatTeacher: "仲未有教材，點擊右上角「新增教材」加入 YouTube 影片或 Google Drive PDF！",
+        noMatStudent: "老師暫時未發佈自學教材。",
+        openLinkBtn: "🔗 開啟外部網頁",
+        deleteBtn: "刪除",
+        doneBtn: "✅ 已完成打卡",
+        markDoneBtn: "☑️ 標記為已完成",
+        progressSavedToast: "🎉 已記錄你的自學進度！",
+        goodLabel: "👍 好表現",
+        badLabel: "👎 壞表現",
+        hwLabel: "📝 欠交功課",
+        addGoodBtn: "+1 好表現",
+        addBadBtn: "+1 壞表現",
+        behaviorNoteLabel: "表現備註（選填，按上方按鈕時一併記錄）",
+        behaviorNotePlaceholder: "例如：主動舉手答問題 / 上堂傾偈",
+        hwCountPrefix: "累計：",
+        hwPlaceholder: "填寫欠交功課內容（如：WS 3、默書改正）",
+        addHwBtn: "+1 記錄欠交功課",
+        recentLogsTitle: "最近紀錄",
+        editLogsHint: "如入錯資料，請於「後台管理」修改",
+        noLogsYet: "暫無操行／功課紀錄",
+        editStudentTitle: "🛠️ 後台編輯學生資料與紀錄",
+        uploadPhotoBtn: "📷 更換相片",
+        studentNameLabel: "學生姓名",
+        editCountsHeading: "🔢 修正次數（如上堂入錯可直接修改數字）",
+        editLogsHeading: "📋 修改或刪除詳細紀錄（可改錯字或刪除誤入項目）",
+        noteEditPlaceholder: "備註 / 欠交功課內容",
+        deleteStudentBtn: "🗑️ 刪除此學生",
+        confirmDeleteStudent: "確定要刪除此學生及所有紀錄嗎？",
+        cancelBtn: "取消",
+        saveChangesBtn: "儲存變更",
+        photoCompressedToast: "相片已自動壓縮完成，按「儲存變更」即可保存",
+        studentSavedToast: "✅ 學生資料與紀錄已更新",
+        studentDeletedToast: "已刪除學生",
+        batchModalTitle: "➕ 批量匯入全班學生",
+        batchModalDesc: "每行輸入一位同學，格式為「班別, 班號, 姓名」（用逗號分隔）。系統會自動將同學依次排入空座位。",
+        importBtn: "開始匯入",
+        importSuccessToast: "✅ 成功匯入學生名單！",
+        addMatModalTitle: "➕ 新增網上教材",
+        matTitleLabel: "教材標題",
+        matTitlePlaceholder: "例如：Unit 3 Passive Voice 教學影片",
+        matTypeLabel: "類型",
+        typeYoutube: "🎬 YouTube 影片",
+        typePdf: "📄 Google Drive PDF 筆記",
+        typeLink: "🔗 外部網頁連結",
+        matUrlLabel: "網址連結（直接貼上普通分享連結即可）",
+        matDescLabel: "簡短說明（選填）",
+        matDescPlaceholder: "請同學觀看後完成工作紙第 2 頁",
+        publishBtn: "發佈教材",
+        matMissingToast: "請填寫標題同網址",
+        matPublishedToast: "✅ 已發佈新教材！",
+        confirmDeleteMat: "確定刪除呢份教材？",
+        matDeletedToast: "已刪除教材",
+        noCsvToast: "暫無學生資料可匯出",
+        csvHeaders: ["班別", "班號", "姓名", "好表現", "壞表現", "欠交功課次數", "欠交功課內容清單", "最新備註"],
+        permDeniedToast: "⚠️ 資料庫權限不足！請檢查 Firebase 安全規則是否已填入正確老師電郵並發佈。"
+      },
+      en: {
+        docTitle: "2A English Class & Self-Learning Hub",
+        loading: "Connecting to classroom system...",
+        langSwitch: "🌐 中文",
+        loginTitle: "S2 English Learning Hub",
+        loginSubtitle: "Sign in with Teacher or Student account",
+        emailLabel: "Email / Student ID",
+        emailPlaceholder: "Teacher email / Student ID (e.g. 2a01)",
+        passwordLabel: "Password",
+        passwordPlaceholder: "Enter password",
+        loginBtn: "Sign In",
+        loggingIn: "Signing in...",
+        loginErr: "Invalid account or password. Please try again.",
+        teacherBadge: "👩‍🏫 Teacher",
+        studentBadge: "🎓 Student",
+        tabWheel: "🎡 Name Wheel",
+        tabSeating: "🪑 Seating & Records",
+        tabMaterials: "📚 Online Learning",
+        lockOn: "🔒 Projector Lock: ON",
+        lockOff: "🔓 Projector Lock: OFF",
+        lockBlockedToast: "🔒 Projector Lock is ON. Unlock at the top-right to open Seating Chart.",
+        lockEnabledToast: "Seating chart locked for safe projection",
+        lockDisabledToast: "Seating chart unlocked",
+        logoutBtn: "Log Out",
+        wheelTitle: "🎡 Random Picker Wheel",
+        wheelRemovePicked: "Remove picked student",
+        wheelReset: "↺ Reset Pool",
+        wheelDisplayLabel: "Display on wheel:",
+        optClass: "Class",
+        optNo: "Class No.",
+        optName: "Name",
+        wheelNeedOneOpt: "Please select at least one display option",
+        wheelEmptyStudents: "Please import students in Seating & Records first",
+        wheelAllPicked: "All students picked! Click Reset Pool",
+        spinBtn: "🎯 Spin the Wheel!",
+        winnerHeading: "Selected Student",
+        winnerEmpty: "Click 'Spin the Wheel' to pick a student",
+        wheelHistoryHeading: "Picked History (This Lesson)",
+        noRecords: "No records yet",
+        wheelQuickTitle: "Quick Record (syncs to seating chart):",
+        wheelQuickNote: "Picked by wheel",
+        wheelResetToast: "Wheel list reset",
+        scoreSavedToast: "✅ Record saved!",
+        seatingTitle: "🪑 Classroom Seating Chart",
+        modeScore: "✏️ Class Recording Mode",
+        modeEdit: "🛠️ Admin / Rearrange Mode",
+        flipView: "Flip View",
+        boardTopLabel: "Board at Top",
+        boardBottomLabel: "Board at Bottom",
+        exportCsv: "📥 Export CSV",
+        editTip: "💡 Drag seats to swap (or tap two seats on iPad). Click '✏️' on any card to edit info, photo, or fix records.",
+        gridCols: "Columns:",
+        gridRows: "Rows:",
+        applyGrid: "Apply Size",
+        batchImportBtn: "➕ Batch Import / Add",
+        blackboard: "Blackboard / Teacher's Desk",
+        emptySeat: "Empty",
+        unassignedTitle: "📦 Unassigned Students (tap student then tap an empty seat in Admin Mode)",
+        seatSelectedToast: "Student selected. Tap target seat to move or swap.",
+        seatUpdatedToast: "✅ Seat updated",
+        gridUpdatedToast: "Grid size updated",
+        materialsTitle: "📚 Online Learning Zone",
+        materialsSubtitle: "Videos, PDF notes & interactive tasks (Kahoot game coming next)",
+        addMaterialBtn: "➕ Add Material (Video / PDF / Link)",
+        noMatTeacher: "No materials yet. Click 'Add Material' to post YouTube videos or Google Drive PDFs.",
+        noMatStudent: "No learning materials posted yet.",
+        openLinkBtn: "🔗 Open External Link",
+        deleteBtn: "Delete",
+        doneBtn: "✅ Completed",
+        markDoneBtn: "☑️ Mark as Completed",
+        progressSavedToast: "🎉 Progress recorded!",
+        goodLabel: "👍 Good",
+        badLabel: "👎 Bad",
+        hwLabel: "📝 Missing HW",
+        addGoodBtn: "+1 Good",
+        addBadBtn: "+1 Bad",
+        behaviorNoteLabel: "Behavior Remark (optional)",
+        behaviorNotePlaceholder: "e.g. Answered actively / Talking in class",
+        hwCountPrefix: "Total: ",
+        hwPlaceholder: "Enter missing homework details (e.g. WS 3, Dictation)",
+        addHwBtn: "+1 Record Missing HW",
+        recentLogsTitle: "Recent Records",
+        editLogsHint: "Made a mistake? Fix it in Admin Mode",
+        noLogsYet: "No behavior or homework records yet",
+        editStudentTitle: "🛠️ Admin: Edit Student & Fix Records",
+        uploadPhotoBtn: "📷 Change Photo",
+        studentNameLabel: "Student Name",
+        editCountsHeading: "🔢 Edit Totals (correct any mistaken counts)",
+        editLogsHeading: "📋 Edit or Delete Detailed Records",
+        noteEditPlaceholder: "Remark / Homework content",
+        deleteStudentBtn: "🗑️ Delete Student",
+        confirmDeleteStudent: "Delete this student and all their records?",
+        cancelBtn: "Cancel",
+        saveChangesBtn: "Save Changes",
+        photoCompressedToast: "Photo compressed. Click 'Save Changes' to confirm.",
+        studentSavedToast: "✅ Student profile & records updated",
+        studentDeletedToast: "Student deleted",
+        batchModalTitle: "➕ Batch Import Students",
+        batchModalDesc: "Enter one student per line in the format: Class, Class No., Name (separated by commas).",
+        importBtn: "Import",
+        importSuccessToast: "✅ Students imported!",
+        addMatModalTitle: "➕ Add Learning Material",
+        matTitleLabel: "Title",
+        matTitlePlaceholder: "e.g. Unit 3 Passive Voice Video",
+        matTypeLabel: "Type",
+        typeYoutube: "🎬 YouTube Video",
+        typePdf: "📄 Google Drive PDF",
+        typeLink: "🔗 External Link",
+        matUrlLabel: "URL (paste standard share link)",
+        matDescLabel: "Description (optional)",
+        matDescPlaceholder: "Watch the video and complete WS p.2",
+        publishBtn: "Publish",
+        matMissingToast: "Please enter both title and URL",
+        matPublishedToast: "✅ Material published!",
+        confirmDeleteMat: "Delete this material?",
+        matDeletedToast: "Material deleted",
+        noCsvToast: "No student data to export",
+        csvHeaders: ["Class", "Class No.", "Name", "Good", "Bad", "Missing HW Count", "Missing HW Details", "Latest Note"],
+        permDeniedToast: "⚠️ Permission denied! Check Firebase Rules for teacher emails."
+      }
+    };
+
     // Global State
+    const savedWheelOpts = (() => {
+      try { return JSON.parse(localStorage.getItem("s2a_wheel_opts") || "null"); } catch (_) { return null; }
+    })();
+
     const state = {
+      lang: localStorage.getItem("s2a_lang") || "zh",
       user: null,
       isTeacher: false,
       currentTab: "materials",
       projectorLocked: false,
-      seatingMode: "score", // 'score' | 'edit'
+      seatingMode: "score",
       gridRows: 6,
       gridCols: 6,
       flipView: false,
       students: [],
       materials: [],
       completedIds: new Set(),
-      allProgressCount: {},
-      selectedSeat: null, // { row, col, studentId }
+      selectedSeat: null,
       activeStudentId: null,
       editingPhotoBase64: null,
-      // Wheel state
+      editingLogs: [],
+      wheelShowClass: savedWheelOpts ? savedWheelOpts.c : true,
+      wheelShowNo: savedWheelOpts ? savedWheelOpts.no : true,
+      wheelShowName: savedWheelOpts ? savedWheelOpts.name : true,
       wheelRemovedIds: new Set(),
       wheelHistory: [],
       wheelAngle: 0,
@@ -454,7 +788,10 @@
       "#8b5cf6", "#14b8a6", "#f97316", "#06b6d4", "#ef4444"
     ];
 
-    // Utilities
+    function t(key) {
+      return (I18N[state.lang] && I18N[state.lang][key]) || I18N.zh[key] || key;
+    }
+
     function escapeHtml(str = "") {
       return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
     }
@@ -483,6 +820,59 @@
       } catch (_) {}
     }
 
+    // ==================== LANGUAGE SWITCH ====================
+    function applyLanguage() {
+      document.title = t("docTitle");
+      document.getElementById("loading-text").textContent = t("loading");
+      document.querySelectorAll(".lang-toggle-btn").forEach(btn => btn.textContent = t("langSwitch"));
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (el.tagName === "LABEL" && el.querySelector("input")) {
+          // Preserve child input (e.g., file upload label)
+          const input = el.querySelector("input");
+          el.textContent = t(key);
+          el.appendChild(input);
+        } else {
+          el.textContent = t(key);
+        }
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+      });
+
+      if (state.user) {
+        document.getElementById("user-badge").textContent = state.isTeacher
+          ? `${t("teacherBadge")} (${state.user.email})`
+          : `${t("studentBadge")} (${state.user.email.replace("@s2a.local", "")})`;
+      }
+
+      updateProjectorLockBtn();
+      drawWheel();
+      renderSeating();
+      renderMaterials();
+      if (!document.getElementById("score-modal").classList.contains("hidden") && state.activeStudentId) {
+        refreshScoreModal();
+      }
+      if (!document.getElementById("edit-student-modal").classList.contains("hidden")) {
+        renderEditLogsEditor();
+      }
+      if (state.wheelHistory.length === 0) {
+        document.getElementById("wheel-history").innerHTML = `<span>${escapeHtml(t("noRecords"))}</span>`;
+      }
+    }
+
+    function toggleLang() {
+      state.lang = state.lang === "zh" ? "en" : "zh";
+      localStorage.setItem("s2a_lang", state.lang);
+      applyLanguage();
+    }
+
+    // Sync initial wheel checkboxes & language
+    document.getElementById("wheel-show-class").checked = state.wheelShowClass;
+    document.getElementById("wheel-show-no").checked = state.wheelShowNo;
+    document.getElementById("wheel-show-name").checked = state.wheelShowName;
+    applyLanguage();
+
     // ==================== AUTH ====================
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -494,16 +884,16 @@
 
       errEl.classList.add("hidden");
       btn.disabled = true;
-      btn.textContent = "登入中...";
+      btn.textContent = t("loggingIn");
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
       } catch (err) {
-        errEl.textContent = "帳號或密碼錯誤，請再試一次。(" + err.code + ")";
+        errEl.textContent = `${t("loginErr")} (${err.code})`;
         errEl.classList.remove("hidden");
       } finally {
         btn.disabled = false;
-        btn.textContent = "登入系統";
+        btn.textContent = t("loginBtn");
       }
     });
 
@@ -525,28 +915,23 @@
 
       document.getElementById("login-screen").classList.add("hidden");
       document.getElementById("main-app").classList.remove("hidden");
-      document.getElementById("user-badge").textContent = state.isTeacher
-        ? `👩‍🏫 老師權限 (${user.email})`
-        : `🎓 學生戶口 (${user.email.replace("@s2a.local", "")})`;
-
       document.querySelectorAll(".teacher-only").forEach(el => {
         el.classList.toggle("hidden", !state.isTeacher);
       });
 
+      applyLanguage();
       subscribeData();
-      app.switchTab(state.isTeacher ? "wheel" : "materials");
+      switchTab(state.isTeacher ? "wheel" : "materials");
     });
 
     // ==================== FIRESTORE SUBSCRIPTIONS ====================
     function subscribeData() {
-      // 1. Materials (All logged-in users)
       const matQ = query(collection(db, "materials"), orderBy("createdAt", "desc"));
       state.unsubs.push(onSnapshot(matQ, (snap) => {
         state.materials = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderMaterials();
       }, (err) => console.error("Materials error:", err)));
 
-      // 2. Own Progress (Student)
       if (!state.isTeacher) {
         state.unsubs.push(onSnapshot(collection(db, "student_progress", state.user.uid, "completed"), (snap) => {
           state.completedIds = new Set(snap.docs.map(d => d.id));
@@ -554,7 +939,6 @@
         }));
       }
 
-      // 3. Teacher-only Data (Grid Settings + Students Roster/Seating)
       if (state.isTeacher) {
         state.unsubs.push(onSnapshot(doc(db, "teacher_data", "s2a_settings"), (snap) => {
           if (snap.exists()) {
@@ -567,9 +951,7 @@
           }
           renderSeating();
         }, (err) => {
-          if (err.code === "permission-denied") {
-            showToast("⚠️ 資料庫權限不足！請檢查 Firebase 安全規則是否已填入正確老師電郵並發佈。", 6000);
-          }
+          if (err.code === "permission-denied") showToast(t("permDeniedToast"), 6000);
         }));
 
         state.unsubs.push(onSnapshot(collection(db, "teacher_data", "s2a", "students"), (snap) => {
@@ -577,7 +959,9 @@
           state.students.sort((a, b) => (a.classNo || "").localeCompare(b.classNo || "", undefined, { numeric: true }));
           renderSeating();
           drawWheel();
-          if (state.activeStudentId) refreshScoreModal();
+          if (state.activeStudentId && !document.getElementById("score-modal").classList.contains("hidden")) {
+            refreshScoreModal();
+          }
         }));
       }
     }
@@ -585,40 +969,79 @@
     // ==================== NAVIGATION ====================
     function switchTab(tab) {
       if (tab === "seating" && state.projectorLocked) {
-        showToast("🔒 投影安全鎖已開啟！請先按右上角解鎖再打開座位表。");
+        showToast(t("lockBlockedToast"));
         return;
       }
       if (!state.isTeacher && (tab === "wheel" || tab === "seating")) return;
 
       state.currentTab = tab;
-      ["wheel", "seating", "materials"].forEach(t => {
-        document.getElementById(`page-${t}`).classList.toggle("hidden", t !== tab);
-        const btn = document.getElementById(`tab-btn-${t}`);
+      ["wheel", "seating", "materials"].forEach(tName => {
+        document.getElementById(`page-${tName}`).classList.toggle("hidden", tName !== tab);
+        const btn = document.getElementById(`tab-btn-${tName}`);
         if (btn) {
           btn.className = btn.className.replace(/bg-white text-indigo-700 shadow-sm|text-slate-600 hover:text-slate-900/g, "");
-          btn.classList.add(...(t === tab ? ["bg-white", "text-indigo-700", "shadow-sm"] : ["text-slate-600", "hover:text-slate-900"]));
+          btn.classList.add(...(tName === tab ? ["bg-white", "text-indigo-700", "shadow-sm"] : ["text-slate-600", "hover:text-slate-900"]));
         }
       });
       if (tab === "wheel") drawWheel();
       if (tab === "seating") renderSeating();
     }
 
+    function updateProjectorLockBtn() {
+      const btn = document.getElementById("projector-lock-btn");
+      if (!btn || !state.isTeacher) return;
+      if (state.projectorLocked) {
+        btn.textContent = t("lockOn");
+        btn.className = "teacher-only px-3 py-1.5 rounded-lg text-xs font-semibold border bg-rose-50 text-rose-700 border-rose-300";
+      } else {
+        btn.textContent = t("lockOff");
+        btn.className = "teacher-only px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white text-slate-600 border-slate-300";
+      }
+    }
+
     function toggleProjectorLock() {
       state.projectorLocked = !state.projectorLocked;
-      const btn = document.getElementById("projector-lock-btn");
+      updateProjectorLockBtn();
       if (state.projectorLocked) {
-        btn.textContent = "🔒 投影安全鎖：開";
-        btn.className = "teacher-only px-3 py-1.5 rounded-lg text-xs font-semibold border bg-rose-50 text-rose-700 border-rose-300";
         if (state.currentTab === "seating") switchTab("wheel");
-        showToast("已鎖定座位表，上堂投影更安心");
+        showToast(t("lockEnabledToast"));
       } else {
-        btn.textContent = "🔓 投影安全鎖：關";
-        btn.className = "teacher-only px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white text-slate-600 border-slate-300";
-        showToast("已解鎖座位表");
+        showToast(t("lockDisabledToast"));
       }
     }
 
     // ==================== PAGE 1: RANDOM WHEEL ====================
+    function onWheelOptionChange() {
+      const c = document.getElementById("wheel-show-class").checked;
+      const no = document.getElementById("wheel-show-no").checked;
+      const name = document.getElementById("wheel-show-name").checked;
+      if (!c && !no && !name) {
+        document.getElementById("wheel-show-no").checked = true;
+        showToast(t("wheelNeedOneOpt"));
+        state.wheelShowClass = false;
+        state.wheelShowNo = true;
+        state.wheelShowName = false;
+      } else {
+        state.wheelShowClass = c;
+        state.wheelShowNo = no;
+        state.wheelShowName = name;
+      }
+      localStorage.setItem("s2a_wheel_opts", JSON.stringify({
+        c: state.wheelShowClass,
+        no: state.wheelShowNo,
+        name: state.wheelShowName
+      }));
+      drawWheel();
+    }
+
+    function formatWheelLabel(student) {
+      const parts = [];
+      if (state.wheelShowClass && student.className) parts.push(student.className);
+      if (state.wheelShowNo && student.classNo) parts.push(student.classNo);
+      if (state.wheelShowName && student.name) parts.push(student.name);
+      return parts.join(" ").trim() || student.name || student.classNo || "?";
+    }
+
     function getWheelPool() {
       return state.students.filter(s => !state.wheelRemovedIds.has(s.id));
     }
@@ -641,14 +1064,14 @@
         ctx.fillStyle = "#e2e8f0";
         ctx.fill();
         ctx.fillStyle = "#64748b";
-        ctx.font = "bold 18px sans-serif";
+        ctx.font = "bold 16px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(state.students.length === 0 ? "請先在「座位表紀錄」匯入學生名單" : "所有同學已被抽中，請按「重置名單」", cx, cy);
+        ctx.fillText(state.students.length === 0 ? t("wheelEmptyStudents") : t("wheelAllPicked"), cx, cy);
         return;
       }
 
       const arc = (Math.PI * 2) / pool.length;
-      const fontSize = pool.length > 28 ? 11 : pool.length > 16 ? 13 : 16;
+      const baseFont = pool.length > 28 ? 11 : pool.length > 16 ? 13 : 15;
 
       pool.forEach((student, i) => {
         const start = state.wheelAngle + i * arc;
@@ -669,13 +1092,13 @@
         ctx.rotate(start + arc / 2);
         ctx.textAlign = "right";
         ctx.fillStyle = "#ffffff";
+        const label = formatWheelLabel(student);
+        const fontSize = label.length > 16 ? Math.max(10, baseFont - 2) : baseFont;
         ctx.font = `bold ${fontSize}px sans-serif`;
-        const label = `${student.classNo || ""} ${student.name || ""}`.trim();
-        ctx.fillText(label, radius - 18, fontSize / 3);
+        ctx.fillText(label, radius - 16, fontSize / 3, radius - 52);
         ctx.restore();
       });
 
-      // Center cap
       ctx.beginPath();
       ctx.arc(cx, cy, 24, 0, Math.PI * 2);
       ctx.fillStyle = "#ffffff";
@@ -726,7 +1149,7 @@
             state.wheelRemovedIds.add(winner.id);
             setTimeout(() => drawWheel(), 400);
           }
-          state.wheelHistory.unshift(`${winner.classNo} ${winner.name}`);
+          state.wheelHistory.unshift(`${winner.className || ""} ${winner.classNo || ""} ${winner.name || ""}`.trim());
           document.getElementById("wheel-history").innerHTML = state.wheelHistory
             .map(h => `<span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg font-medium">${escapeHtml(h)}</span>`)
             .join("");
@@ -745,44 +1168,33 @@
         <div class="animate-pop">
           ${avatar}
           <div class="text-sm font-semibold text-indigo-600">${escapeHtml(student.className || "")} (${escapeHtml(student.classNo || "")})</div>
-          <div class="text-3xl font-extrabold text-slate-800 mt-1 mb-4">${escapeHtml(student.name)}</div>
-          <div class="text-xs text-slate-400 mb-2">即時記分（直接寫入座位表）：</div>
+          <div class="text-2xl font-extrabold text-slate-800 mt-1 mb-4 break-words">${escapeHtml(student.name)}</div>
+          <div class="text-xs text-slate-400 mb-2">${escapeHtml(t("wheelQuickTitle"))}</div>
           <div class="grid grid-cols-3 gap-2">
-            <button onclick="app.quickScoreFromWheel('${student.id}', 'good')" class="py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">👍 好表現 +1</button>
-            <button onclick="app.quickScoreFromWheel('${student.id}', 'bad')" class="py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold">👎 壞表現 +1</button>
-            <button onclick="app.quickScoreFromWheel('${student.id}', 'missingHw')" class="py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold">📝 欠交 +1</button>
+            <button onclick="app.quickScoreFromWheel('${student.id}', 'good')" class="py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">${escapeHtml(t("addGoodBtn"))}</button>
+            <button onclick="app.quickScoreFromWheel('${student.id}', 'bad')" class="py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold">${escapeHtml(t("addBadBtn"))}</button>
+            <button onclick="app.openScoreModal('${student.id}')" class="py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold">📝 ${escapeHtml(t("hwLabel").replace("📝 ", ""))}</button>
           </div>
         </div>`;
     }
 
     async function quickScoreFromWheel(studentId, field) {
-      await updateStudentScore(studentId, field, 1, "轉盤抽答紀錄");
-      showToast("✅ 已成功寫入座位表紀錄！");
+      await updateStudentScore(studentId, field, t("wheelQuickNote"));
+      showToast(t("scoreSavedToast"));
     }
 
     function resetWheelPool() {
       state.wheelRemovedIds.clear();
       state.wheelHistory = [];
-      document.getElementById("wheel-history").innerHTML = "<span>暫無紀錄</span>";
+      document.getElementById("wheel-history").innerHTML = `<span>${escapeHtml(t("noRecords"))}</span>`;
       drawWheel();
-      showToast("轉盤名單已重置");
+      showToast(t("wheelResetToast"));
     }
 
     // ==================== PAGE 2: SEATING CHART ====================
     function setSeatingMode(mode) {
       state.seatingMode = mode;
       state.selectedSeat = null;
-      document.getElementById("seating-admin-bar").classList.toggle("hidden", mode !== "edit");
-
-      const scoreBtn = document.getElementById("mode-score-btn");
-      const editBtn = document.getElementById("mode-edit-btn");
-      if (mode === "score") {
-        scoreBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white shadow";
-        editBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200";
-      } else {
-        scoreBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200";
-        editBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-amber-500 text-white shadow";
-      }
       renderSeating();
     }
 
@@ -790,7 +1202,7 @@
       const rows = Math.max(2, Math.min(10, parseInt(document.getElementById("grid-rows").value) || 6));
       const cols = Math.max(2, Math.min(10, parseInt(document.getElementById("grid-cols").value) || 6));
       await setDoc(doc(db, "teacher_data", "s2a_settings"), { rows, cols, flipView: state.flipView }, { merge: true });
-      showToast(`已更新座位表為 ${cols} 列 x ${rows} 排`);
+      showToast(`${t("gridUpdatedToast")} (${cols} x ${rows})`);
     }
 
     async function toggleFlipView() {
@@ -803,7 +1215,6 @@
       const grid = document.getElementById("seating-grid");
       if (!grid) return;
 
-      // Update mode button styles on initial render
       document.getElementById("seating-admin-bar").classList.toggle("hidden", state.seatingMode !== "edit");
       document.getElementById("mode-score-btn").className = state.seatingMode === "score"
         ? "px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white shadow"
@@ -814,7 +1225,7 @@
 
       document.getElementById("board-top").classList.toggle("hidden", state.flipView);
       document.getElementById("board-bottom").classList.toggle("hidden", !state.flipView);
-      document.getElementById("view-label").textContent = state.flipView ? "講台在下方" : "講台在上方";
+      document.getElementById("view-label").textContent = state.flipView ? t("boardBottomLabel") : t("boardTopLabel");
 
       grid.style.gridTemplateColumns = `repeat(${state.gridCols}, minmax(0, 1fr))`;
 
@@ -839,23 +1250,23 @@
 
           if (s) {
             const avatar = s.photo
-              ? `<img src="${s.photo}" class="w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0" />`
-              : `<div class="w-11 h-11 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm shrink-0">${escapeHtml((s.name || "?").slice(0, 1))}</div>`;
+              ? `<img src="${s.photo}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />`
+              : `<div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm shrink-0">${escapeHtml((s.name || "?").slice(0, 1))}</div>`;
 
             html += `
-              <div class="seat-card relative bg-white border-2 ${isSelected ? "seat-selected border-amber-400" : "border-slate-200"} rounded-xl p-2.5 shadow-sm cursor-pointer select-none"
+              <div class="seat-card relative bg-white border-2 ${isSelected ? "seat-selected border-amber-400" : "border-slate-200"} rounded-xl p-2.5 shadow-sm cursor-pointer select-none flex flex-col justify-between min-h-[112px]"
                 draggable="${isEdit}"
                 ondragstart="app.onSeatDragStart(event, ${r}, ${c}, '${s.id}')"
                 ondragover="app.onSeatDragOver(event)"
                 ondragleave="app.onSeatDragLeave(event)"
                 ondrop="app.onSeatDrop(event, ${r}, ${c})"
                 onclick="app.onSeatClick(${r}, ${c}, '${s.id}')">
-                ${isEdit ? `<button onclick="event.stopPropagation(); app.openEditStudentModal('${s.id}')" title="編輯資料與相片" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs flex items-center justify-center">📷</button>` : ""}
-                <div class="flex items-center gap-2">
+                ${isEdit ? `<button onclick="event.stopPropagation(); app.openEditStudentModal('${s.id}')" title="Edit" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs flex items-center justify-center shadow-sm">✏️</button>` : ""}
+                <div class="flex items-start gap-2 ${isEdit ? "pr-5" : ""}">
                   ${avatar}
-                  <div class="min-w-0">
-                    <div class="text-[11px] font-bold text-slate-400">${escapeHtml(s.className || "")} #${escapeHtml(s.classNo || "")}</div>
-                    <div class="text-sm font-bold text-slate-800 truncate">${escapeHtml(s.name)}</div>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-[11px] font-bold text-slate-400 leading-tight">${escapeHtml(s.className || "")} #${escapeHtml(s.classNo || "")}</div>
+                    <div class="text-xs sm:text-[13px] font-bold text-slate-800 leading-tight mt-0.5 name-two-lines">${escapeHtml(s.name)}</div>
                   </div>
                 </div>
                 <div class="mt-2 pt-1.5 border-t border-slate-100 flex justify-between text-[11px] font-bold">
@@ -866,19 +1277,18 @@
               </div>`;
           } else {
             html += `
-              <div class="seat-card h-[96px] rounded-xl border-2 border-dashed ${isSelected ? "seat-selected border-amber-400 bg-amber-50" : "border-slate-200 bg-slate-50/70"} flex items-center justify-center text-xs text-slate-400 ${isEdit ? "cursor-pointer hover:border-amber-300" : ""}"
+              <div class="seat-card min-h-[112px] rounded-xl border-2 border-dashed ${isSelected ? "seat-selected border-amber-400 bg-amber-50" : "border-slate-200 bg-slate-50/70"} flex items-center justify-center text-xs text-slate-400 ${isEdit ? "cursor-pointer hover:border-amber-300" : ""}"
                 ondragover="app.onSeatDragOver(event)"
                 ondragleave="app.onSeatDragLeave(event)"
                 ondrop="app.onSeatDrop(event, ${r}, ${c})"
                 onclick="app.onSeatClick(${r}, ${c}, null)">
-                ${isEdit ? "空位" : ""}
+                ${isEdit ? escapeHtml(t("emptySeat")) : ""}
               </div>`;
           }
         }
       }
       grid.innerHTML = html;
 
-      // Render Unassigned Pool
       const uBox = document.getElementById("unassigned-box");
       if (unassigned.length > 0) {
         uBox.classList.remove("hidden");
@@ -889,8 +1299,8 @@
               ondragstart="app.onSeatDragStart(event, -1, -1, '${s.id}')"
               onclick="app.onSeatClick(-1, -1, '${s.id}')"
               class="px-3 py-2 rounded-xl border-2 ${isSel ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-slate-50"} text-xs font-bold cursor-pointer flex items-center gap-2">
-              <span>${escapeHtml(s.classNo)} ${escapeHtml(s.name)}</span>
-              ${state.seatingMode === "edit" ? `<button onclick="event.stopPropagation(); app.openEditStudentModal('${s.id}')" class="text-amber-600">📷</button>` : ""}
+              <span>${escapeHtml(s.className || "")} ${escapeHtml(s.classNo || "")} ${escapeHtml(s.name)}</span>
+              ${state.seatingMode === "edit" ? `<button onclick="event.stopPropagation(); app.openEditStudentModal('${s.id}')" class="text-amber-600">✏️</button>` : ""}
             </div>`;
         }).join("");
       } else {
@@ -898,25 +1308,21 @@
       }
     }
 
-    // Drag & Drop + Click-to-Swap Logic
+    // Drag & Drop + Click-to-Swap
     let dragPayload = null;
-
     function onSeatDragStart(e, row, col, studentId) {
       if (state.seatingMode !== "edit") return;
       dragPayload = { row, col, studentId };
       e.dataTransfer.effectAllowed = "move";
     }
-
     function onSeatDragOver(e) {
       if (state.seatingMode !== "edit") return;
       e.preventDefault();
       e.currentTarget.classList.add("drag-over");
     }
-
     function onSeatDragLeave(e) {
       e.currentTarget.classList.remove("drag-over");
     }
-
     async function onSeatDrop(e, targetRow, targetCol) {
       e.preventDefault();
       e.currentTarget.classList.remove("drag-over");
@@ -924,18 +1330,16 @@
       await moveOrSwapSeat(dragPayload.studentId, dragPayload.row, dragPayload.col, targetRow, targetCol);
       dragPayload = null;
     }
-
     async function onSeatClick(row, col, studentId) {
       if (state.seatingMode === "score") {
         if (studentId) openScoreModal(studentId);
         return;
       }
-      // Edit mode: click-to-swap
       if (!state.selectedSeat) {
         if (!studentId) return;
         state.selectedSeat = { row, col, studentId };
         renderSeating();
-        showToast("已選取學生，請點擊目標座位完成移動／互換");
+        showToast(t("seatSelectedToast"));
       } else {
         if (state.selectedSeat.row === row && state.selectedSeat.col === col && state.selectedSeat.studentId === studentId) {
           state.selectedSeat = null;
@@ -947,26 +1351,30 @@
         await moveOrSwapSeat(from.studentId, from.row, from.col, row, col);
       }
     }
-
     async function moveOrSwapSeat(sourceId, fromRow, fromCol, toRow, toCol) {
       if (toRow < 0 || toCol < 0) return;
       const targetStudent = state.students.find(s => s.row === toRow && s.col === toCol);
       const batch = writeBatch(db);
-      const sourceRef = doc(db, "teacher_data", "s2a", "students", sourceId);
-      batch.update(sourceRef, { row: toRow, col: toCol });
-
+      batch.update(doc(db, "teacher_data", "s2a", "students", sourceId), { row: toRow, col: toCol });
       if (targetStudent && targetStudent.id !== sourceId) {
-        const targetRef = doc(db, "teacher_data", "s2a", "students", targetStudent.id);
-        batch.update(targetRef, { row: fromRow, col: fromCol });
+        batch.update(doc(db, "teacher_data", "s2a", "students", targetStudent.id), { row: fromRow, col: fromCol });
       }
       await batch.commit();
-      showToast("✅ 座位已更新");
+      showToast(t("seatUpdatedToast"));
     }
 
-    // ==================== SCORING MODAL ====================
+    // ==================== SCORING MODAL (NO MINUS + MISSING HW INPUT) ====================
+    function getLogDisplayLabel(log) {
+      if (log.type === "good") return t("goodLabel");
+      if (log.type === "bad") return t("badLabel");
+      if (log.type === "missingHw") return t("hwLabel");
+      return log.label || "";
+    }
+
     function openScoreModal(studentId) {
       state.activeStudentId = studentId;
       document.getElementById("sm-note").value = "";
+      document.getElementById("sm-hw-note").value = "";
       refreshScoreModal();
       document.getElementById("score-modal").classList.remove("hidden");
     }
@@ -975,7 +1383,7 @@
       const s = state.students.find(st => st.id === state.activeStudentId);
       if (!s) return;
       document.getElementById("sm-name").textContent = s.name;
-      document.getElementById("sm-sub").textContent = `${s.className || ""} 班號 ${s.classNo || ""}`;
+      document.getElementById("sm-sub").textContent = `${s.className || ""} #${s.classNo || ""}`;
       document.getElementById("sm-good").textContent = s.good || 0;
       document.getElementById("sm-bad").textContent = s.bad || 0;
       document.getElementById("sm-hw").textContent = s.missingHw || 0;
@@ -995,56 +1403,116 @@
       const logsEl = document.getElementById("sm-logs");
       const logs = s.logs || [];
       if (logs.length === 0) {
-        logsEl.innerHTML = `<div class="text-slate-400 text-center py-2">暫無操行／功課紀錄</div>`;
+        logsEl.innerHTML = `<div class="text-slate-400 text-center py-2">${escapeHtml(t("noLogsYet"))}</div>`;
       } else {
-        logsEl.innerHTML = logs.slice(0, 20).map(l => `
-          <div class="flex justify-between items-start gap-2 border-b border-slate-200/70 pb-1 last:border-0">
-            <div>
-              <span class="font-bold">${escapeHtml(l.label)}</span>
-              ${l.note ? `<span class="text-slate-600 ml-1">- ${escapeHtml(l.note)}</span>` : ""}
-            </div>
-            <span class="text-[10px] text-slate-400 shrink-0">${escapeHtml(l.time)}</span>
-          </div>`).join("");
+        logsEl.innerHTML = logs.slice(0, 25).map(l => {
+          const isHw = l.type === "missingHw" || (l.label || "").includes("欠交");
+          return `
+            <div class="flex justify-between items-start gap-2 border-b border-slate-200/70 pb-1.5 last:border-0 ${isHw ? "bg-amber-50/70 -mx-1 px-1.5 py-1 rounded" : ""}">
+              <div class="min-w-0">
+                <span class="font-bold">${escapeHtml(getLogDisplayLabel(l))}</span>
+                ${l.note ? `<span class="text-slate-700 ml-1 break-words">- ${escapeHtml(l.note)}</span>` : ""}
+              </div>
+              <span class="text-[10px] text-slate-400 shrink-0">${escapeHtml(l.time || "")}</span>
+            </div>`;
+        }).join("");
       }
     }
 
-    async function adjustScore(field, delta) {
+    async function addScore(field) {
       const note = document.getElementById("sm-note").value.trim();
-      await updateStudentScore(state.activeStudentId, field, delta, note);
+      await updateStudentScore(state.activeStudentId, field, note);
       document.getElementById("sm-note").value = "";
+      showToast(t("scoreSavedToast"));
     }
 
-    async function updateStudentScore(studentId, field, delta, note = "") {
+    async function addMissingHw() {
+      const hwContent = document.getElementById("sm-hw-note").value.trim();
+      await updateStudentScore(state.activeStudentId, "missingHw", hwContent);
+      document.getElementById("sm-hw-note").value = "";
+      showToast(t("scoreSavedToast"));
+    }
+
+    async function updateStudentScore(studentId, field, note = "") {
       const s = state.students.find(st => st.id === studentId);
       if (!s) return;
-      const newVal = Math.max(0, (s[field] || 0) + delta);
-      const labelMap = { good: "👍 好表現", bad: "👎 壞表現", missingHw: "📝 欠交功課" };
+      const newVal = (s[field] || 0) + 1;
+      const labelMap = { good: "👍 好表現 (+1)", bad: "👎 壞表現 (+1)", missingHw: "📝 欠交功課 (+1)" };
       const now = new Date();
       const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const newLog = {
-        label: `${labelMap[field]} (${delta > 0 ? "+1" : "-1"})`,
+        type: field,
+        label: labelMap[field],
         note,
         time: timeStr,
         by: state.user.email
       };
-      const updatedLogs = [newLog, ...(s.logs || [])].slice(0, 40);
+      const updatedLogs = [newLog, ...(s.logs || [])].slice(0, 60);
       await updateDoc(doc(db, "teacher_data", "s2a", "students", studentId), {
         [field]: newVal,
         logs: updatedLogs
       });
     }
 
-    // ==================== EDIT STUDENT & PHOTO COMPRESSION ====================
+    // ==================== BACKEND EDIT STUDENT, COUNTS & LOGS ====================
     function openEditStudentModal(studentId) {
       const s = state.students.find(st => st.id === studentId);
       if (!s) return;
       state.activeStudentId = studentId;
       state.editingPhotoBase64 = s.photo || "";
+      state.editingLogs = (s.logs || []).map(l => ({ ...l }));
+
       document.getElementById("es-class").value = s.className || "2A";
       document.getElementById("es-no").value = s.classNo || "";
       document.getElementById("es-name").value = s.name || "";
-      document.getElementById("es-preview").src = s.photo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e2e8f0'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2364748b' font-size='14'%3E無相片%3C/text%3E%3C/svg%3E";
+      document.getElementById("es-good").value = s.good || 0;
+      document.getElementById("es-bad").value = s.bad || 0;
+      document.getElementById("es-hw").value = s.missingHw || 0;
+      document.getElementById("es-preview").src = s.photo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e2e8f0'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2364748b' font-size='14'%3EPhoto%3C/text%3E%3C/svg%3E";
+
+      renderEditLogsEditor();
       document.getElementById("edit-student-modal").classList.remove("hidden");
+    }
+
+    function renderEditLogsEditor() {
+      const container = document.getElementById("es-logs-editor");
+      if (!container) return;
+      if (state.editingLogs.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-400 text-center py-2">${escapeHtml(t("noLogsYet"))}</div>`;
+        return;
+      }
+      container.innerHTML = state.editingLogs.map((l, idx) => `
+        <div class="bg-white border border-slate-200 rounded-lg p-2 space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-700">${escapeHtml(getLogDisplayLabel(l))} <span class="text-slate-400 font-normal">(${escapeHtml(l.time || "")})</span></span>
+            <button type="button" onclick="app.removeEditingLog(${idx})" class="text-rose-500 hover:text-rose-700 font-bold text-xs px-1.5 py-0.5 rounded hover:bg-rose-50">
+              🗑️ ${escapeHtml(t("deleteBtn"))}
+            </button>
+          </div>
+          <input type="text" value="${escapeHtml(l.note || "")}"
+            oninput="app.updateEditingLogNote(${idx}, this.value)"
+            placeholder="${escapeHtml(t("noteEditPlaceholder"))}"
+            class="w-full px-2.5 py-1 text-xs border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+      `).join("");
+    }
+
+    function updateEditingLogNote(idx, value) {
+      if (state.editingLogs[idx]) state.editingLogs[idx].note = value;
+    }
+
+    function removeEditingLog(idx) {
+      const removed = state.editingLogs.splice(idx, 1)[0];
+      // Conveniently auto-decrement matching counter if > 0 (teacher can still manually adjust before saving)
+      if (removed) {
+        const type = removed.type || ((removed.label || "").includes("好") ? "good" : (removed.label || "").includes("壞") ? "bad" : (removed.label || "").includes("欠交") ? "missingHw" : null);
+        const inputMap = { good: "es-good", bad: "es-bad", missingHw: "es-hw" };
+        if (type && inputMap[type]) {
+          const el = document.getElementById(inputMap[type]);
+          el.value = Math.max(0, (parseInt(el.value) || 0) - 1);
+        }
+      }
+      renderEditLogsEditor();
     }
 
     function handlePhotoUpload(e) {
@@ -1060,13 +1528,11 @@
           canvas.height = size;
           const ctx = canvas.getContext("2d");
           const minSide = Math.min(img.width, img.height);
-          const sx = (img.width - minSide) / 2;
-          const sy = (img.height - minSide) / 2;
-          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+          ctx.drawImage(img, (img.width - minSide) / 2, (img.height - minSide) / 2, minSide, minSide, 0, 0, size, size);
           const compressed = canvas.toDataURL("image/jpeg", 0.72);
           state.editingPhotoBase64 = compressed;
           document.getElementById("es-preview").src = compressed;
-          showToast("相片已自動壓縮完成，按「儲存變更」即可保存");
+          showToast(t("photoCompressedToast"));
         };
         img.src = ev.target.result;
       };
@@ -1078,17 +1544,21 @@
         className: document.getElementById("es-class").value.trim(),
         classNo: document.getElementById("es-no").value.trim(),
         name: document.getElementById("es-name").value.trim(),
-        photo: state.editingPhotoBase64 || ""
+        photo: state.editingPhotoBase64 || "",
+        good: Math.max(0, parseInt(document.getElementById("es-good").value) || 0),
+        bad: Math.max(0, parseInt(document.getElementById("es-bad").value) || 0),
+        missingHw: Math.max(0, parseInt(document.getElementById("es-hw").value) || 0),
+        logs: state.editingLogs
       });
       closeModal("edit-student-modal");
-      showToast("✅ 學生資料與相片已更新");
+      showToast(t("studentSavedToast"));
     }
 
     async function deleteEditingStudent() {
-      if (!confirm("確定要刪除此學生及所有紀錄嗎？")) return;
+      if (!confirm(t("confirmDeleteStudent"))) return;
       await deleteDoc(doc(db, "teacher_data", "s2a", "students", state.activeStudentId));
       closeModal("edit-student-modal");
-      showToast("已刪除學生");
+      showToast(t("studentDeletedToast"));
     }
 
     // ==================== BATCH IMPORT & CSV EXPORT ====================
@@ -1111,18 +1581,14 @@
 
       const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const batch = writeBatch(db);
-      let count = 0;
 
       lines.forEach(line => {
         const parts = line.split(/[,，\t]+/).map(p => p.trim());
         let className = "2A", classNo = "", name = "";
-        if (parts.length >= 3) {
-          [className, classNo, name] = parts;
-        } else if (parts.length === 2) {
-          [classNo, name] = parts;
-        } else {
-          name = parts[0];
-        }
+        if (parts.length >= 3) [className, classNo, name] = parts;
+        else if (parts.length === 2) [classNo, name] = parts;
+        else name = parts[0];
+
         const slot = emptySlots.shift() || { row: -1, col: -1 };
         const ref = doc(collection(db, "teacher_data", "s2a", "students"));
         batch.set(ref, {
@@ -1130,23 +1596,27 @@
           row: slot.row, col: slot.col,
           photo: "", good: 0, bad: 0, missingHw: 0, logs: []
         });
-        count++;
       });
 
       await batch.commit();
       closeModal("batch-modal");
-      showToast(`✅ 成功匯入 ${count} 位學生！`);
+      showToast(t("importSuccessToast"));
     }
 
     function exportCSV() {
       if (state.students.length === 0) {
-        showToast("暫無學生資料可匯出");
+        showToast(t("noCsvToast"));
         return;
       }
-      const header = ["班別", "班號", "姓名", "好表現", "壞表現", "欠交功課", "最新備註"];
+      const header = t("csvHeaders");
       const rows = state.students.map(s => {
-        const latest = (s.logs && s.logs[0]) ? `${s.logs[0].time} ${s.logs[0].label} ${s.logs[0].note || ""}` : "";
-        return [s.className, s.classNo, s.name, s.good || 0, s.bad || 0, s.missingHw || 0, latest]
+        const logs = s.logs || [];
+        const hwList = logs
+          .filter(l => l.type === "missingHw" || (l.label || "").includes("欠交"))
+          .map(l => `${l.time || ""} ${l.note || "(未註明)"}`.trim())
+          .join(" ; ");
+        const latest = logs[0] ? `${logs[0].time || ""} ${getLogDisplayLabel(logs[0])} ${logs[0].note || ""}`.trim() : "";
+        return [s.className, s.classNo, s.name, s.good || 0, s.bad || 0, s.missingHw || 0, hwList, latest]
           .map(v => `"${String(v || "").replace(/"/g, '""')}"`).join(",");
       });
       const csv = "\uFEFF" + [header.join(","), ...rows].join("\n");
@@ -1154,7 +1624,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `2A_課堂紀錄_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `2A_Records_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -1180,7 +1650,7 @@
         container.innerHTML = `
           <div class="col-span-full bg-white rounded-2xl p-10 text-center text-slate-400">
             <div class="text-4xl mb-2">📂</div>
-            <p>${state.isTeacher ? "仲未有教材，點擊右上角「新增教材」加入 YouTube 影片或 Google Drive PDF！" : "老師暫時未發佈自學教材。"}</p>
+            <p>${escapeHtml(state.isTeacher ? t("noMatTeacher") : t("noMatStudent"))}</p>
           </div>`;
         return;
       }
@@ -1194,7 +1664,7 @@
         } else if (m.type === "pdf") {
           previewHtml = `<iframe class="w-full h-80 rounded-xl border bg-slate-50" src="${escapeHtml(embedUrl)}"></iframe>`;
         } else {
-          previewHtml = `<a href="${escapeHtml(m.url)}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-sm hover:bg-indigo-100">🔗 開啟外部網頁</a>`;
+          previewHtml = `<a href="${escapeHtml(m.url)}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-sm hover:bg-indigo-100">${escapeHtml(t("openLinkBtn"))}</a>`;
         }
 
         return `
@@ -1202,7 +1672,7 @@
             <div class="space-y-3">
               <div class="flex justify-between items-start gap-2">
                 <h3 class="font-bold text-lg text-slate-800">${escapeHtml(m.title)}</h3>
-                ${state.isTeacher ? `<button onclick="app.deleteMaterial('${m.id}')" class="text-xs text-rose-500 hover:underline shrink-0">刪除</button>` : ""}
+                ${state.isTeacher ? `<button onclick="app.deleteMaterial('${m.id}')" class="text-xs text-rose-500 hover:underline shrink-0">${escapeHtml(t("deleteBtn"))}</button>` : ""}
               </div>
               ${m.desc ? `<p class="text-sm text-slate-600">${escapeHtml(m.desc)}</p>` : ""}
               ${previewHtml}
@@ -1211,7 +1681,7 @@
               <div class="pt-3 border-t flex justify-end">
                 <button onclick="app.toggleMaterialDone('${m.id}')"
                   class="px-4 py-2 rounded-xl text-sm font-bold transition ${isDone ? "bg-emerald-100 text-emerald-700" : "bg-indigo-600 text-white hover:bg-indigo-700"}">
-                  ${isDone ? "✅ 已完成打卡" : "☑️ 標記為已完成"}
+                  ${escapeHtml(isDone ? t("doneBtn") : t("markDoneBtn"))}
                 </button>
               </div>` : ""}
           </div>`;
@@ -1228,7 +1698,7 @@
       const type = document.getElementById("mat-type").value;
       const url = document.getElementById("mat-url").value.trim();
       const desc = document.getElementById("mat-desc").value.trim();
-      if (!title || !url) { showToast("請填寫標題同網址"); return; }
+      if (!title || !url) { showToast(t("matMissingToast")); return; }
 
       await addDoc(collection(db, "materials"), {
         title, type, url, desc,
@@ -1236,13 +1706,13 @@
         createdBy: state.user.email
       });
       closeModal("material-modal");
-      showToast("✅ 已發佈新教材！");
+      showToast(t("matPublishedToast"));
     }
 
     async function deleteMaterial(id) {
-      if (!confirm("確定刪除呢份教材？")) return;
+      if (!confirm(t("confirmDeleteMat"))) return;
       await deleteDoc(doc(db, "materials", id));
-      showToast("已刪除教材");
+      showToast(t("matDeletedToast"));
     }
 
     async function toggleMaterialDone(materialId) {
@@ -1251,7 +1721,7 @@
         await deleteDoc(ref);
       } else {
         await setDoc(ref, { completedAt: Date.now(), email: state.user.email });
-        showToast("🎉 已記錄你的自學進度！");
+        showToast(t("progressSavedToast"));
       }
     }
 
@@ -1263,11 +1733,11 @@
       signOut(auth);
     }
 
-    // Expose public handlers
     window.app = {
-      switchTab, toggleProjectorLock, spinWheel, resetWheelPool, quickScoreFromWheel,
-      setSeatingMode, saveGridSize, toggleFlipView, onSeatDragStart, onSeatDragOver,
-      onSeatDragLeave, onSeatDrop, onSeatClick, adjustScore, openEditStudentModal,
+      toggleLang, switchTab, toggleProjectorLock, onWheelOptionChange, spinWheel, resetWheelPool,
+      quickScoreFromWheel, setSeatingMode, saveGridSize, toggleFlipView, onSeatDragStart,
+      onSeatDragOver, onSeatDragLeave, onSeatDrop, onSeatClick, openScoreModal, addScore,
+      addMissingHw, openEditStudentModal, updateEditingLogNote, removeEditingLog,
       handlePhotoUpload, saveEditingStudent, deleteEditingStudent, openBatchModal,
       importBatchStudents, exportCSV, openAddMaterialModal, saveMaterial, deleteMaterial,
       toggleMaterialDone, closeModal, logout
