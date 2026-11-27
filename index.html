@@ -8,18 +8,17 @@
   <style>
     :root {
       --eye-bg: #e3f0e7;        /* 柔和護眼淺豆綠底色 */
-      --eye-card: #f6fbf8;      /* 溫潤薄荷乳白卡片（去純白刺眼感） */
+      --eye-card: #f6fbf8;      /* 溫潤薄荷乳白卡片 */
       --eye-soft: #ebf5ee;      /* 淺綠次要區塊 */
       --eye-muted: #d9eadf;     /* 柔綠選單底色 */
       --eye-border: #c9dfd1;    /* 柔和淺綠邊框 */
-      --eye-text: #1f3329;      /* 深墨綠文字（柔和護眼高對比） */
+      --eye-text: #1f3329;      /* 深墨綠文字 */
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
       background-color: var(--eye-bg) !important;
       color: var(--eye-text);
     }
-    /* 將純白與冷灰色溫和過渡為護眼淺綠系 */
     .eye-surface { background-color: var(--eye-card) !important; }
     .bg-white { background-color: var(--eye-card) !important; }
     .bg-slate-50 { background-color: var(--eye-soft) !important; }
@@ -56,7 +55,7 @@
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-emerald-950 text-emerald-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium max-w-sm"></div>
 
-  <!-- Floating Mini Timer (visible when timer runs on another tab) -->
+  <!-- Floating Mini Timer -->
   <div id="mini-timer" onclick="app.switchTab('tools')"
     class="hidden fixed bottom-5 left-5 z-40 cursor-pointer bg-emerald-950 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 hover:bg-emerald-900 transition">
     <span class="text-lg">⏱️</span>
@@ -64,7 +63,7 @@
     <span class="text-xs text-emerald-300 font-semibold" data-i18n="miniTimerReturn">返回</span>
   </div>
 
-  <!-- Login Screen (Teacher Only - Soft Eye-Care Green) -->
+  <!-- Login Screen -->
   <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-100 via-teal-100 to-green-200 relative">
     <button onclick="app.toggleLang()"
       class="lang-toggle-btn absolute top-4 right-4 px-3.5 py-2 bg-white hover:bg-emerald-50 text-teal-800 border border-emerald-200 rounded-xl text-xs font-bold shadow-sm transition">
@@ -168,7 +167,6 @@
       <!-- ==================== PAGE 1: RANDOM WHEEL ==================== -->
       <section id="page-wheel" class="hidden">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <!-- Wheel Canvas Area -->
           <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col items-center">
             <div class="w-full flex flex-wrap justify-between items-center mb-3 gap-2">
               <div class="flex items-center gap-2">
@@ -217,7 +215,7 @@
             </button>
           </div>
 
-          <!-- Right Panel: Result & Quick Scoring -->
+          <!-- Right Panel -->
           <div class="lg:col-span-4 space-y-4">
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
               <h3 class="text-sm font-semibold text-emerald-700/70 uppercase tracking-wider mb-3" data-i18n="winnerHeading">今次抽中同學</h3>
@@ -236,22 +234,37 @@
         </div>
       </section>
 
-      <!-- ==================== PAGE 2: TIMER & RANDOM GROUPING (PROJECTOR SAFE) ==================== -->
+      <!-- ==================== PAGE 2: TIMER & RANDOM GROUPING ==================== -->
       <section id="page-tools" class="hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <!-- Left: Classroom Countdown Timer -->
-          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div class="flex items-center justify-between">
               <h2 class="text-xl font-bold text-emerald-950" data-i18n="timerTitle">⏱️ 課堂倒數計時器</h2>
               <span id="timer-status-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-emerald-800" data-i18n="timerReady">待命中</span>
             </div>
 
-            <!-- Big Display (Soft Deep Forest Chalkboard) -->
+            <!-- Big Display -->
             <div id="timer-display-box" class="bg-emerald-950 text-emerald-50 rounded-2xl p-6 text-center transition">
               <div id="timer-display" class="font-mono text-6xl sm:text-7xl font-extrabold tracking-widest">03:00</div>
               <div class="w-full h-2.5 bg-emerald-800/80 rounded-full overflow-hidden mt-5">
                 <div id="timer-progress" class="h-full bg-emerald-400 transition-all duration-300" style="width: 100%"></div>
               </div>
+            </div>
+
+            <!-- Sound Selector + Test Button -->
+            <div class="flex items-center gap-2 bg-slate-50 px-3 py-2.5 rounded-xl border border-slate-200">
+              <span class="text-xs font-bold text-emerald-900 shrink-0" data-i18n="timerSoundLabel">夠鐘鈴聲：</span>
+              <select id="timer-sound-mode" onchange="app.onTimerSoundChange()"
+                class="flex-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-bold bg-white text-emerald-950 focus:outline-none">
+                <option value="alarm" data-i18n="soundAlarm">⏰ 響亮鬧鐘（推薦課室）</option>
+                <option value="bell" data-i18n="soundBell">🔔 柔和下課鐘聲</option>
+                <option value="mute" data-i18n="soundMute">🔇 靜音</option>
+              </select>
+              <button type="button" onclick="app.testTimerSound()"
+                class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-teal-900 rounded-lg text-xs font-bold shrink-0 transition" data-i18n="testSoundBtn">
+                🔊 試聲
+              </button>
             </div>
 
             <!-- Presets -->
@@ -327,9 +340,8 @@
         </div>
       </section>
 
-      <!-- ==================== PAGE 3: SEATING CHART (LOCKABLE) ==================== -->
+      <!-- ==================== PAGE 3: SEATING CHART ==================== -->
       <section id="page-seating" class="hidden space-y-4">
-        <!-- Toolbar -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-2">
             <h2 class="text-xl font-bold text-emerald-950 mr-1" data-i18n="seatingTitle">🪑 課室座位表</h2>
@@ -370,7 +382,7 @@
           </div>
         </div>
 
-        <!-- Admin Edit Controls (Only visible in Edit Mode) -->
+        <!-- Admin Edit Controls -->
         <div id="seating-admin-bar" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="text-sm text-amber-900 font-medium" data-i18n="editTip">
@@ -413,7 +425,7 @@
         </div>
       </section>
 
-      <!-- ==================== PAGE 4: MISSING HOMEWORK TRACKER (LOCKABLE) ==================== -->
+      <!-- ==================== PAGE 4: MISSING HOMEWORK TRACKER ==================== -->
       <section id="page-hw" class="hidden space-y-4">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
@@ -437,11 +449,9 @@
             </div>
           </div>
 
-          <!-- Filter Chips by Homework Name -->
           <div id="hw-topic-chips" class="flex flex-wrap gap-1.5"></div>
         </div>
 
-        <!-- HW Tracker List -->
         <div id="hw-tracker-list" class="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-emerald-100 overflow-hidden"></div>
       </section>
     </main>
@@ -488,7 +498,6 @@
       </div>
 
       <div class="p-5 space-y-4 overflow-y-auto">
-        <!-- Good & Bad Performance -->
         <div class="grid grid-cols-2 gap-3 text-center">
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col items-center">
             <div class="text-xs font-bold text-emerald-700" data-i18n="goodLabel">👍 好表現</div>
@@ -508,7 +517,6 @@
           </div>
         </div>
 
-        <!-- Behavior Note + Quick Tags -->
         <div class="space-y-1.5">
           <label class="block text-xs font-semibold text-emerald-800/80" data-i18n="behaviorNoteLabel">表現備註（選填，可點快捷標籤）</label>
           <input id="sm-note" type="text" data-i18n-placeholder="behaviorNotePlaceholder" placeholder="例如：主動舉手答問題 / 上堂傾偈"
@@ -516,7 +524,6 @@
           <div id="behavior-quick-tags" class="flex flex-wrap gap-1.5 pt-0.5"></div>
         </div>
 
-        <!-- Dedicated Missing Homework Box + Quick Tags -->
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-sm font-bold text-amber-800" data-i18n="hwLabel">📝 欠交功課</span>
@@ -533,7 +540,6 @@
           </button>
         </div>
 
-        <!-- Recent Logs -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-xs font-bold text-emerald-800/80" data-i18n="recentLogsTitle">最近紀錄</span>
@@ -545,7 +551,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: BACKEND EDIT STUDENT, COUNTS & LOGS ==================== -->
+  <!-- ==================== MODAL: BACKEND EDIT STUDENT ==================== -->
   <div id="edit-student-modal" class="hidden fixed inset-0 bg-emerald-950/45 z-40 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden animate-pop">
       <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
@@ -554,7 +560,6 @@
       </div>
 
       <div class="p-6 space-y-4 overflow-y-auto">
-        <!-- Photo & Basic Info -->
         <div class="flex flex-col sm:flex-row items-center gap-4">
           <div class="flex flex-col items-center gap-2 shrink-0">
             <img id="es-preview" class="w-20 h-20 rounded-full object-cover border-2 border-emerald-200 bg-slate-100" />
@@ -581,7 +586,6 @@
           </div>
         </div>
 
-        <!-- Edit Counts Directly -->
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
           <div class="text-xs font-bold text-emerald-900" data-i18n="editCountsHeading">🔢 修正次數（如上堂入錯可直接修改數字）</div>
           <div class="grid grid-cols-3 gap-2">
@@ -600,7 +604,6 @@
           </div>
         </div>
 
-        <!-- Edit / Delete Historical Logs -->
         <div>
           <div class="text-xs font-bold text-emerald-900 mb-1.5" data-i18n="editLogsHeading">📋 修改或刪除詳細紀錄（可改錯字或刪除誤入項目）</div>
           <div id="es-logs-editor" class="max-h-48 overflow-y-auto space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200"></div>
@@ -726,6 +729,13 @@
         timerRunning: "計時中",
         timerPaused: "已暫停",
         timerFinished: "夠鐘！",
+        timerSoundLabel: "夠鐘鈴聲：",
+        soundAlarm: "⏰ 響亮鬧鐘（推薦課室）",
+        soundBell: "🔔 柔和下課鐘聲",
+        soundMute: "🔇 靜音",
+        testSoundBtn: "🔊 試聲",
+        testSoundMutedToast: "現時設定為靜音模式",
+        stopAlarmBtn: "🔕 停止響鈴",
         timerPresets: "快捷時間：",
         timerCustom: "自訂：",
         timerMinUnit: "分",
@@ -888,6 +898,13 @@
         timerRunning: "Running",
         timerPaused: "Paused",
         timerFinished: "Time's Up!",
+        timerSoundLabel: "Alarm Sound:",
+        soundAlarm: "⏰ Loud Alarm (Classroom)",
+        soundBell: "🔔 Soft Chime",
+        soundMute: "🔇 Mute",
+        testSoundBtn: "🔊 Test",
+        testSoundMutedToast: "Sound is currently set to Mute",
+        stopAlarmBtn: "🔕 Stop Alarm",
         timerPresets: "Quick Presets:",
         timerCustom: "Custom:",
         timerMinUnit: "m",
@@ -1038,12 +1055,14 @@
       timerRemainSec: 180,
       timerRunning: false,
       timerInterval: null,
+      timerSound: localStorage.getItem("s2a_timer_sound") || "alarm",
+      alarmRinging: false,
+      alarmInterval: null,
       groups: [],
       globalUnsubs: [],
       classUnsubs: []
     };
 
-    // Softened, pleasant wheel colors that pair nicely with light green theme
     const WHEEL_COLORS = [
       "#2a9d8f", "#e76f51", "#457b9d", "#e9c46a", "#52b788",
       "#8e7dbe", "#f4a261", "#3a86a8", "#d9777f", "#40916c"
@@ -1112,20 +1131,96 @@
       el._timer = setTimeout(() => el.classList.add("hidden"), duration);
     }
 
-    function playSound(freq = 660, duration = 0.15) {
+    // ==================== UPGRADED AUDIO ENGINE (SAFARI / IPAD SAFE) ====================
+    let sharedAudioCtx = null;
+
+    function unlockAudio() {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = "triangle";
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-        osc.start();
-        osc.stop(ctx.currentTime + duration);
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!sharedAudioCtx) sharedAudioCtx = new AudioCtx();
+        if (sharedAudioCtx.state === "suspended") sharedAudioCtx.resume();
       } catch (_) {}
+    }
+
+    function playTone(freq, delaySec = 0, duration = 0.2, type = "triangle", volume = 0.5) {
+      try {
+        unlockAudio();
+        if (!sharedAudioCtx) return;
+        const startAt = sharedAudioCtx.currentTime + delaySec;
+        const osc = sharedAudioCtx.createOscillator();
+        const gain = sharedAudioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startAt);
+        gain.gain.setValueAtTime(0.001, startAt);
+        gain.gain.linearRampToValueAtTime(volume, startAt + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+        osc.connect(gain);
+        gain.connect(sharedAudioCtx.destination);
+        osc.start(startAt);
+        osc.stop(startAt + duration + 0.03);
+      } catch (_) {}
+    }
+
+    function playSound(freq = 660, duration = 0.16) {
+      playTone(freq, 0, duration, "triangle", 0.35);
+    }
+
+    function playAlarmBurst(mode = state.timerSound) {
+      if (mode === "mute") return;
+      if (mode === "bell") {
+        playTone(523.25, 0.00, 0.35, "sine", 0.65);
+        playTone(659.25, 0.16, 0.35, "sine", 0.65);
+        playTone(783.99, 0.32, 0.35, "sine", 0.65);
+        playTone(1046.5, 0.48, 0.75, "sine", 0.75);
+      } else {
+        // Loud classroom digital alarm (4 sharp beeps)
+        [0, 0.14, 0.28, 0.42].forEach(d => playTone(1046.5, d, 0.10, "square", 0.38));
+      }
+    }
+
+    function startAlarmLoop() {
+      stopAlarm();
+      if (state.timerSound === "mute") return;
+      state.alarmRinging = true;
+      updateTimerUI();
+      playAlarmBurst();
+      let count = 1;
+      state.alarmInterval = setInterval(() => {
+        count++;
+        if (count > 5) {
+          stopAlarm();
+          return;
+        }
+        playAlarmBurst();
+      }, 1350);
+    }
+
+    function stopAlarm() {
+      if (state.alarmInterval) {
+        clearInterval(state.alarmInterval);
+        state.alarmInterval = null;
+      }
+      if (state.alarmRinging) {
+        state.alarmRinging = false;
+        updateTimerUI();
+      }
+    }
+
+    function onTimerSoundChange() {
+      state.timerSound = document.getElementById("timer-sound-mode").value;
+      localStorage.setItem("s2a_timer_sound", state.timerSound);
+      unlockAudio();
+      if (state.timerSound !== "mute") playAlarmBurst(state.timerSound);
+    }
+
+    function testTimerSound() {
+      unlockAudio();
+      if (state.timerSound === "mute") {
+        showToast(t("testSoundMutedToast"));
+        return;
+      }
+      playAlarmBurst(state.timerSound);
     }
 
     // ==================== LANGUAGE SWITCH ====================
@@ -1178,6 +1273,7 @@
     document.getElementById("wheel-show-class").checked = state.wheelShowClass;
     document.getElementById("wheel-show-no").checked = state.wheelShowNo;
     document.getElementById("wheel-show-name").checked = state.wheelShowName;
+    document.getElementById("timer-sound-mode").value = state.timerSound;
     applyLanguage();
 
     // ==================== AUTH (TEACHER ONLY) ====================
@@ -1557,6 +1653,7 @@
       const pool = getWheelPool();
       if (state.isSpinning || pool.length === 0) return;
 
+      unlockAudio();
       state.isSpinning = true;
       document.getElementById("spin-btn").disabled = true;
 
@@ -1584,9 +1681,9 @@
           const winnerIndex = Math.floor(rel / arc) % pool.length;
           const winner = pool[winnerIndex];
 
-          playSound(523, 0.12);
-          setTimeout(() => playSound(659, 0.12), 120);
-          setTimeout(() => playSound(784, 0.28), 240);
+          playTone(523.25, 0.00, 0.14, "triangle", 0.4);
+          playTone(659.25, 0.13, 0.14, "triangle", 0.4);
+          playTone(783.99, 0.26, 0.30, "triangle", 0.45);
 
           showWheelWinner(winner);
 
@@ -1646,9 +1743,13 @@
     function updateMiniTimerVisibility() {
       const mini = document.getElementById("mini-timer");
       if (!mini) return;
-      const show = state.timerRunning && state.currentTab !== "tools";
+      const show = (state.timerRunning || state.alarmRinging) && state.currentTab !== "tools";
       mini.classList.toggle("hidden", !show);
-      if (show) document.getElementById("mini-timer-display").textContent = formatMMSS(state.timerRemainSec);
+      if (show) {
+        document.getElementById("mini-timer-display").textContent = state.alarmRinging ? "00:00" : formatMMSS(state.timerRemainSec);
+        mini.classList.toggle("bg-rose-700", state.alarmRinging);
+        mini.classList.toggle("bg-emerald-950", !state.alarmRinging);
+      }
     }
 
     function updateTimerUI() {
@@ -1663,15 +1764,24 @@
       const pct = state.timerTotalSec > 0 ? (state.timerRemainSec / state.timerTotalSec) * 100 : 0;
       progress.style.width = `${pct}%`;
 
-      if (state.timerRemainSec === 0 && state.timerTotalSec > 0) {
+      if (state.alarmRinging) {
         box.classList.add("bg-rose-700", "timer-done-flash");
         box.classList.remove("bg-emerald-950");
         statusBadge.textContent = t("timerFinished");
         statusBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700";
+        startBtn.textContent = t("stopAlarmBtn");
+        startBtn.className = "py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-base shadow transition";
+      } else if (state.timerRemainSec === 0 && state.timerTotalSec > 0) {
+        box.classList.add("bg-rose-700");
+        box.classList.remove("bg-emerald-950", "timer-done-flash");
+        statusBadge.textContent = t("timerFinished");
+        statusBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700";
         startBtn.textContent = t("timerStart");
+        startBtn.className = "py-3.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-base shadow transition";
       } else {
         box.classList.remove("bg-rose-700", "timer-done-flash");
         box.classList.add("bg-emerald-950");
+        startBtn.className = "py-3.5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-base shadow transition";
         if (state.timerRunning) {
           statusBadge.textContent = t("timerRunning");
           statusBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700";
@@ -1690,6 +1800,7 @@
     }
 
     function setTimerPreset(seconds) {
+      stopAlarm();
       stopTimerInterval();
       state.timerTotalSec = seconds;
       state.timerRemainSec = seconds;
@@ -1715,6 +1826,11 @@
     }
 
     function toggleTimer() {
+      unlockAudio();
+      if (state.alarmRinging) {
+        stopAlarm();
+        return;
+      }
       if (state.timerRunning) {
         stopTimerInterval();
         updateTimerUI();
@@ -1730,16 +1846,15 @@
         updateTimerUI();
         if (state.timerRemainSec === 0) {
           stopTimerInterval();
+          startAlarmLoop();
           updateTimerUI();
-          playSound(880, 0.25);
-          setTimeout(() => playSound(880, 0.25), 320);
-          setTimeout(() => playSound(1046, 0.45), 640);
-          showToast(t("timerTimesUpToast"), 4500);
+          showToast(t("timerTimesUpToast"), 5000);
         }
       }, 1000);
     }
 
     function resetTimer() {
+      stopAlarm();
       stopTimerInterval();
       state.timerRemainSec = state.timerTotalSec;
       updateTimerUI();
@@ -1821,6 +1936,7 @@
     }
 
     async function awardGroupBonus(groupIdx) {
+      unlockAudio();
       const grp = state.groups[groupIdx];
       if (!grp || grp.memberIds.length === 0) return;
 
@@ -2549,6 +2665,7 @@
     }
 
     function logout() {
+      stopAlarm();
       stopTimerInterval();
       signOut(auth);
     }
@@ -2557,7 +2674,7 @@
       toggleLang, selectClass, openClassManager, addNewClass, renameClass, removeClass,
       switchTab, toggleProjectorLock,
       onWheelOptionChange, spinWheel, resetWheelPool, quickScoreFromWheel,
-      setTimerPreset, applyCustomTimer, toggleTimer, resetTimer,
+      setTimerPreset, applyCustomTimer, toggleTimer, resetTimer, onTimerSoundChange, testTimerSound, stopAlarm,
       generateGroups, clearGroups, awardGroupBonus,
       setSeatingMode, saveGridSize, toggleFlipView, toggleActiveStudentAbsent, clearTodayAbsences,
       onSeatDragStart, onSeatDragOver, onSeatDragLeave, onSeatDrop, onSeatClick,
